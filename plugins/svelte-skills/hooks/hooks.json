@@ -5,7 +5,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "./skill-activation-forced-eval.sh"
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/skill-activation-forced-eval.sh"
           }
         ]
       }
