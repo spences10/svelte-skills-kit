@@ -1,0 +1,14 @@
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./skill-activation-forced-eval.sh"
+          }
+        ]
+      }
+    ]
+  }
+}

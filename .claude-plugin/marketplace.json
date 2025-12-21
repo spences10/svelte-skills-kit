@@ -1,0 +1,5 @@
+{
+  "name": "svelte-skills-kit",
+  "description": "Svelte 5 and SvelteKit skills, commands, and hooks",
+  "plugins": ["sveltekit"]
+}
