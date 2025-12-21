@@ -19,11 +19,12 @@ Svelte 5 and SvelteKit skills marketplace for Claude Code.
 # Clone marketplace
 git clone git@github.com:spences10/svelte-skills-kit.git ~/code/svelte-skills-kit
 
-# Symlink plugin for immediate use
-ln -s ~/code/svelte-skills-kit/plugins/svelte-skills ~/.claude/plugins/svelte-skills
+# Install plugin (creates cache)
+/plugin marketplace add ~/code/svelte-skills-kit
+/plugin install svelte-skills
 ```
 
-Edit in marketplace repo → changes work immediately → push when ready.
+**Note:** Plugin files are cached at `~/.claude/plugins/cache/`. After editing source files, reinstall or manually sync cache.
 
 ## Team Installation
 
@@ -39,6 +40,12 @@ Three hook options in `plugins/svelte-skills/hooks/`:
 - `skill-simple-instruction.sh` - Basic echo instruction
 - `skill-activation-forced-eval.sh` - Enforces Evaluate→Activate→Implement
 - `skill-activation-llm-eval.sh` - Smart matching via Claude API
+
+**Important:** Hook commands must use `${CLAUDE_PLUGIN_ROOT}` for paths:
+
+```json
+"command": "${CLAUDE_PLUGIN_ROOT}/hooks/your-script.sh"
+```
 
 ## Versioning
 
