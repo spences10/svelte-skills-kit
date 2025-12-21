@@ -20,7 +20,7 @@ Svelte 5 and SvelteKit skills marketplace for Claude Code.
 git clone git@github.com:spences10/svelte-skills-kit.git ~/code/svelte-skills-kit
 
 # Symlink plugin for immediate use
-ln -s ~/code/svelte-skills-kit/plugins/sveltekit ~/.claude/plugins/sveltekit
+ln -s ~/code/svelte-skills-kit/plugins/svelte-skills ~/.claude/plugins/svelte-skills
 ```
 
 Edit in marketplace repo → changes work immediately → push when ready.
@@ -29,12 +29,12 @@ Edit in marketplace repo → changes work immediately → push when ready.
 
 ```bash
 /plugin marketplace add spences10/svelte-skills-kit
-/plugin install sveltekit
+/plugin install svelte-skills
 ```
 
 ## Hooks
 
-Three hook options in `plugins/sveltekit/hooks/`:
+Three hook options in `plugins/svelte-skills/hooks/`:
 
 - `skill-simple-instruction.sh` - Basic echo instruction
 - `skill-activation-forced-eval.sh` - Enforces Evaluate→Activate→Implement
@@ -42,4 +42,4 @@ Three hook options in `plugins/sveltekit/hooks/`:
 
 ## Versioning
 
-Bump `version` in `plugins/sveltekit/.claude-plugin/plugin.json` on changes.
+Bump `version` in `plugins/svelte-skills/.claude-plugin/plugin.json` on changes.
