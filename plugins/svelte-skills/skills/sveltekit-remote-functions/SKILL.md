@@ -18,15 +18,15 @@ description: SvelteKit remote functions guidance. Use for command(), query(), fo
 
 ```typescript
 // actions.remote.ts
-import { command } from '$app/server';
-import * as v from 'valibot';
+import { command } from "$app/server";
+import * as v from "valibot";
 
 export const delete_user = command(
-	v.object({ id: v.string() }),
-	async ({ id }) => {
-		await db.users.delete(id);
-		return { success: true };
-	},
+  v.object({ id: v.string() }),
+  async ({ id }) => {
+    await db.users.delete(id);
+    return { success: true };
+  }
 );
 
 // Call from client: await delete_user({ id: '123' });
@@ -43,7 +43,9 @@ export const delete_user = command(
 - Args/returns must be JSON-serializable
 - Schema validation via StandardSchemaV1 (Valibot/Zod)
 - `getRequestEvent()` available for cookies/headers access
-- **Last verified:** 2025-01-13
+- **In components:** Use `<svelte:boundary>` + `{@const await}` (no flicker)
+- **Refresh queries:** Call `query().refresh()` - updates without flicker
+- **Last verified:** 2025-12-24
 
 <!--
 PROGRESSIVE DISCLOSURE GUIDELINES:

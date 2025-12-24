@@ -28,18 +28,18 @@ command.unchecked(handler: (input: unknown) => Promise<Result>)
 **Example:**
 
 ```typescript
-import { command } from '$app/server';
-import * as v from 'valibot';
+import { command } from "$app/server";
+import * as v from "valibot";
 
 export const create_post = command(
-	v.object({
-		title: v.string(),
-		content: v.string(),
-	}),
-	async ({ title, content }) => {
-		const post = await db.posts.create({ title, content });
-		return { id: post.id };
-	},
+  v.object({
+    title: v.string(),
+    content: v.string(),
+  }),
+  async ({ title, content }) => {
+    const post = await db.posts.create({ title, content });
+    return { id: post.id };
+  }
 );
 ```
 
@@ -53,19 +53,168 @@ automatically batched into a single request.
 **Example:**
 
 ```typescript
-import { query } from '$app/server';
-import * as v from 'valibot';
+import { query } from "$app/server";
+import * as v from "valibot";
 
-export const get_user = query(
-	v.object({ id: v.string() }),
-	async ({ id }) => {
-		return await db.users.findById(id);
-	},
-);
+export const get_user = query(v.object({ id: v.string() }), async ({ id }) => {
+  return await db.users.findById(id);
+});
 
 // Client side - these may be batched:
-const user1 = await get_user({ id: '1' });
-const user2 = await get_user({ id: '2' });
+const user1 = await get_user({ id: "1" });
+const user2 = await get_user({ id: "2" });
+```
+
+## Using Queries in Svelte Components
+
+Queries return promises. With `experimental.async: true` (Svelte 5.36+),
+use `<svelte:boundary>` for flicker-free updates.
+
+### Pattern 1: svelte:boundary (Recommended)
+
+Use `<svelte:boundary>` with `{@const await}` - pending only shows on
+initial load, not on refreshes:
+
+```svelte
+<script lang="ts">
+	import { get_posts } from '$lib/posts.remote'
+
+	// Query is cached - same call returns same promise
+	const data = get_posts()
+</script>
+
+<svelte:boundary>
+	{#snippet pending()}
+		<p>Loading...</p>
+	{/snippet}
+
+	{@const posts = await data}
+	{#each posts as post}
+		<article>{post.title}</article>
+	{/each}
+</svelte:boundary>
+```
+
+### Pattern 2: Reactive Query with Navigation
+
+For queries that depend on route params:
+
+```svelte
+<script lang="ts">
+	import { page } from '$app/state'
+	import { get_post } from '$lib/posts.remote'
+
+	// Extract reactive value first
+	let slug = $derived(page.params.slug)
+
+	// Query re-runs when slug changes
+	let data = $derived(get_post({ slug }))
+</script>
+
+<svelte:boundary>
+	{#snippet pending()}
+		<p>Loading...</p>
+	{/snippet}
+
+	{@const post = await data}
+	<h1>{post.title}</h1>
+	<div>{@html post.content}</div>
+</svelte:boundary>
+```
+
+### Polling with Refresh (No Flicker)
+
+Use `.refresh()` with `<svelte:boundary>` - the pending snippet only
+shows on initial load, subsequent refreshes update seamlessly:
+
+```svelte
+<script lang="ts">
+	import { get_active_visitors } from '$lib/analytics.remote'
+
+	// Query is cached
+	const data = get_active_visitors({ limit: 10 })
+
+	// Refresh every 5 seconds - updates cached query in place
+	$effect(() => {
+		const interval = setInterval(
+			() => get_active_visitors({ limit: 10 }).refresh(),
+			5000,
+		)
+		return () => clearInterval(interval)
+	})
+</script>
+
+<svelte:boundary>
+	{#snippet pending()}
+		<p>Loading...</p>
+	{/snippet}
+
+	{@const result = await data}
+	<p>{result.total} active visitors</p>
+</svelte:boundary>
+```
+
+**Key points:**
+
+- Queries are cached while on the page (`get_posts() === get_posts()`)
+- Call `.refresh()` on the query to refetch from server
+- `<svelte:boundary pending>` only shows on initial load, not refreshes
+- No flicker when polling - UI updates smoothly
+
+### Common Mistakes
+
+❌ **Wrong: $derived.by + {#await} causes flicker on refresh**
+
+```svelte
+<script>
+	let result = $derived.by(async () => {
+		return await get_data()
+	})
+</script>
+
+<!-- Shows pending state on EVERY update = flicker -->
+{#await result}
+	<p>Loading...</p>
+{:then data}
+	...
+{/await}
+```
+
+✅ **Right: Use svelte:boundary - pending only on initial load**
+
+```svelte
+<script>
+	const data = get_data()
+</script>
+
+<svelte:boundary>
+	{#snippet pending()}
+		<p>Loading...</p>
+	{/snippet}
+
+	{@const result = await data}
+	...
+</svelte:boundary>
+```
+
+❌ **Wrong: Not tracking reactive dependencies**
+
+```svelte
+<script>
+	// path is NOT tracked - won't re-run on navigation!
+	const data = get_data({ path: page.url.pathname })
+</script>
+```
+
+✅ **Right: Extract reactive value first**
+
+```svelte
+<script>
+	let path = $derived(page.url.pathname)
+
+	// path IS tracked - re-runs when path changes
+	let data = $derived(get_data({ path }))
+</script>
 ```
 
 ### form()
@@ -75,26 +224,26 @@ const user2 = await get_user({ id: '2' });
 **Usage:**
 
 ```typescript
-import { form } from '$app/server';
-import * as v from 'valibot';
+import { form } from "$app/server";
+import * as v from "valibot";
 
 export const login_form = form(
-	v.object({
-		email: v.string(),
-		password: v.string(),
-	}),
-	async ({ email, password }) => {
-		// Handle login
-		return { success: true };
-	}
+  v.object({
+    email: v.string(),
+    password: v.string(),
+  }),
+  async ({ email, password }) => {
+    // Handle login
+    return { success: true };
+  }
 );
 
 // In component:
 <form {...login_form}>
-	<input name="email" />
-	<input name="password" type="password" />
-	<button>Login</button>
-</form>
+  <input name="email" />
+  <input name="password" type="password" />
+  <button>Login</button>
+</form>;
 ```
 
 ## Validation
@@ -105,17 +254,17 @@ standard implemented by Valibot, Zod, ArkType, and others.
 ### With Valibot
 
 ```typescript
-import * as v from 'valibot';
+import * as v from "valibot";
 
 export const update_settings = command(
-	v.object({
-		theme: v.union([v.literal('light'), v.literal('dark')]),
-		notifications: v.boolean(),
-	}),
-	async (settings) => {
-		// settings is fully typed and validated
-		await db.settings.update(settings);
-	},
+  v.object({
+    theme: v.union([v.literal("light"), v.literal("dark")]),
+    notifications: v.boolean(),
+  }),
+  async (settings) => {
+    // settings is fully typed and validated
+    await db.settings.update(settings);
+  }
 );
 ```
 
@@ -123,8 +272,8 @@ export const update_settings = command(
 
 ```typescript
 export const simple_action = command(async () => {
-	// No input validation
-	return { timestamp: Date.now() };
+  // No input validation
+  return { timestamp: Date.now() };
 });
 ```
 
@@ -132,8 +281,8 @@ export const simple_action = command(async () => {
 
 ```typescript
 export const flexible_action = command.unchecked(async (input) => {
-	// input is unknown - validate manually if needed
-	return process(input);
+  // input is unknown - validate manually if needed
+  return process(input);
 });
 ```
 
@@ -160,15 +309,15 @@ export const flexible_action = command.unchecked(async (input) => {
 ```typescript
 // ✅ Valid
 return {
-	name: 'Alice',
-	age: 30,
-	created: new Date(),
+  name: "Alice",
+  age: 30,
+  created: new Date(),
 };
 
 // ❌ Invalid
 return {
-	user: new User(), // Class instance
-	callback: () => {}, // Function
+  user: new User(), // Class instance
+  callback: () => {}, // Function
 };
 ```
 
@@ -178,13 +327,13 @@ Use `getRequestEvent()` inside remote functions to access cookies,
 headers, etc:
 
 ```typescript
-import { command, getRequestEvent } from '$app/server';
+import { command, getRequestEvent } from "$app/server";
 
 export const get_session = command(async () => {
-	const event = getRequestEvent();
-	const sessionId = event.cookies.get('session');
+  const event = getRequestEvent();
+  const sessionId = event.cookies.get("session");
 
-	return { sessionId };
+  return { sessionId };
 });
 ```
 
@@ -194,21 +343,21 @@ Thrown errors are serialized and re-thrown on the client:
 
 ```typescript
 export const risky_action = command(
-	v.object({ id: v.string() }),
-	async ({ id }) => {
-		const item = await db.items.find(id);
-		if (!item) {
-			throw new Error('Item not found');
-		}
-		return item;
-	},
+  v.object({ id: v.string() }),
+  async ({ id }) => {
+    const item = await db.items.find(id);
+    if (!item) {
+      throw new Error("Item not found");
+    }
+    return item;
+  }
 );
 
 // Client side:
 try {
-	await risky_action({ id: '123' });
+  await risky_action({ id: "123" });
 } catch (error) {
-	console.error(error.message); // "Item not found"
+  console.error(error.message); // "Item not found"
 }
 ```
 
@@ -219,9 +368,9 @@ functions:
 
 ```
 src/lib/
-  users.remote.ts     ← Remote functions
-  database.server.ts  ← Server-only utilities (no remote calls)
-  utils.ts            ← Universal utilities
+	users.remote.ts		 ← Remote functions
+	database.server.ts	← Server-only utilities (no remote calls)
+	utils.ts						← Universal utilities
 ```
 
 ## Performance Tips
@@ -246,14 +395,14 @@ export const delete_item = command(idSchema, async ({ id }) => { ... });
 
 ```typescript
 export const admin_action = command(schema, async (data) => {
-	const event = getRequestEvent();
-	const user = await getUserFromEvent(event);
+  const event = getRequestEvent();
+  const user = await getUserFromEvent(event);
 
-	if (!user.isAdmin) {
-		throw new Error('Unauthorized');
-	}
+  if (!user.isAdmin) {
+    throw new Error("Unauthorized");
+  }
 
-	return performAdminAction(data);
+  return performAdminAction(data);
 });
 ```
 
@@ -284,10 +433,10 @@ Remote functions maintain full type safety:
 ```typescript
 // Server
 export const get_post = query(
-	v.object({ id: v.number() }),
-	async ({ id }): Promise<{ title: string; body: string }> => {
-		return await db.posts.find(id);
-	},
+  v.object({ id: v.number() }),
+  async ({ id }): Promise<{ title: string; body: string }> => {
+    return await db.posts.find(id);
+  }
 );
 
 // Client - fully typed!

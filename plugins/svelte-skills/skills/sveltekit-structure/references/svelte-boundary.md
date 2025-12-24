@@ -22,17 +22,18 @@
 
 ## Pending UI (Loading States)
 
+With `experimental.async: true` (Svelte 5.36+), use `{@const await}`
+directly - the `pending` snippet only shows on initial load, not on
+subsequent updates (no flicker on refresh):
+
 ```svelte
 <svelte:boundary>
-	{#await loadData()}
-		<!-- This shows while loading -->
-	{:then data}
-		<DataView {data} />
-	{/await}
-
 	{#snippet pending()}
 		<LoadingSpinner />
 	{/snippet}
+
+	{@const data = await loadData()}
+	<DataView {data} />
 </svelte:boundary>
 ```
 
@@ -40,12 +41,6 @@
 
 ```svelte
 <svelte:boundary onerror={logError}>
-	{#await fetchUser()}
-		<!-- Will show pending snippet -->
-	{:then user}
-		<UserProfile {user} />
-	{/await}
-
 	{#snippet pending()}
 		<p>Loading user...</p>
 	{/snippet}
@@ -54,6 +49,9 @@
 		<p>Failed to load user</p>
 		<button onclick={reset}>Retry</button>
 	{/snippet}
+
+	{@const user = await fetchUser()}
+	<UserProfile {user} />
 </svelte:boundary>
 ```
 
@@ -122,7 +120,8 @@ Inner boundary catches first:
 
 - Use `svelte:boundary` for component-level error isolation
 - Use `+error.svelte` for route-level error pages
-- `pending` snippet shows during initial `await` resolution
+- `pending` snippet shows only on **initial** load (not on refresh - no flicker)
 - `failed` snippet replaces content on error
 - `reset` function lets users retry
 - Errors in event handlers are NOT caught
+- Requires `experimental.async: true` in svelte.config.js for `{@const await}`
