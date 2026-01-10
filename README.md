@@ -2,6 +2,18 @@
 
 Svelte 5 and SvelteKit skills marketplace for Claude Code.
 
+## Quick Start
+
+```bash
+# 1. Add marketplace (one-time)
+/plugin marketplace add spences10/svelte-skills-kit
+
+# 2. Install plugin
+/plugin install svelte-skills
+```
+
+> **Note:** Marketplace = catalog. Plugin = what you install from it.
+
 ## Skills Included
 
 - **project-context** - Ensures project patterns are consulted
@@ -19,19 +31,14 @@ Svelte 5 and SvelteKit skills marketplace for Claude Code.
 # Clone marketplace
 git clone git@github.com:spences10/svelte-skills-kit.git ~/code/svelte-skills-kit
 
-# Install plugin (creates cache)
+# 1. Add marketplace
 /plugin marketplace add ~/code/svelte-skills-kit
+
+# 2. Install plugin
 /plugin install svelte-skills
 ```
 
 **Note:** Plugin files are cached at `~/.claude/plugins/cache/`. After editing source files, reinstall or manually sync cache.
-
-## Team Installation
-
-```bash
-/plugin marketplace add spences10/svelte-skills-kit
-/plugin install svelte-skills
-```
 
 ## Hooks
 
