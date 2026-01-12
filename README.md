@@ -17,7 +17,6 @@ Svelte 5 and SvelteKit skills marketplace for Claude Code.
 ## Skills Included
 
 - **project-context** - Ensures project patterns are consulted
-- **research** - Verified source research
 - **svelte-components** - Component patterns (Bits UI, Ark UI, Melt UI)
 - **svelte-deployment** - Adapters, Vite config, pnpm, PWA
 - **svelte-runes** - $state, $derived, $effect, migration
