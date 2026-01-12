@@ -23,6 +23,11 @@ Svelte 5 and SvelteKit skills marketplace for Claude Code.
 - **sveltekit-data-flow** - Load functions, form actions
 - **sveltekit-remote-functions** - command(), query(), form() patterns
 - **sveltekit-structure** - Routing, layouts, error handling, SSR
+- **layerchart-svelte5** - LayerChart patterns with Svelte 5 snippets
+
+## Related
+
+For general-purpose skills (research, etc), see [claude-code-toolkit](https://github.com/spences10/claude-code-toolkit).
 
 ## Local Development
 
