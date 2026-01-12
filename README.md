@@ -25,9 +25,18 @@ Svelte 5 and SvelteKit skills marketplace for Claude Code.
 - **sveltekit-structure** - Routing, layouts, error handling, SSR
 - **layerchart-svelte5** - LayerChart patterns with Svelte 5 snippets
 
-## Related
+## Ecosystem
 
-For general-purpose skills (research, etc), see [claude-code-toolkit](https://github.com/spences10/claude-code-toolkit).
+Part of the [@spences10](https://github.com/spences10) Claude Code ecosystem:
+
+| Repo                                                                    | Description                       |
+| ----------------------------------------------------------------------- | --------------------------------- |
+| [claude-code-toolkit](https://github.com/spences10/claude-code-toolkit) | Performance, productivity, skills |
+| [mcp-omnisearch](https://github.com/spences10/mcp-omnisearch)           | Unified search MCP (Tavily, Kagi) |
+| [mcp-sqlite-tools](https://github.com/spences10/mcp-sqlite-tools)       | Safe SQLite operations MCP        |
+| [mcpick](https://github.com/spences10/mcpick)                           | Dynamic MCP server toggling       |
+| [cclog](https://github.com/spences10/cclog)                             | Claude Code transcript → SQLite   |
+| [claude-skills-cli](https://github.com/spences10/claude-skills-cli)     | CLI for creating skills           |
 
 ## Local Development
 
