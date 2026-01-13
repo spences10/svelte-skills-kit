@@ -5,7 +5,7 @@
   },
   "metadata": {
     "description": "Svelte 5 and SvelteKit skills, commands, and hooks",
-    "version": "1.0.0",
+    "version": "1.2.0",
     "homepage": "https://github.com/spences10/svelte-skills-kit"
   },
   "plugins": [
@@ -13,18 +13,12 @@
       "name": "svelte-skills",
       "source": "./plugins/svelte-skills",
       "description": "Svelte 5 runes, SvelteKit data flow, routing, and structure patterns",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "author": {
         "name": "Scott Spence"
       },
       "category": "framework",
-      "keywords": [
-        "svelte",
-        "sveltekit",
-        "runes",
-        "routing",
-        "ssr"
-      ]
+      "keywords": ["svelte", "sveltekit", "runes", "routing", "ssr"]
     }
   ]
 }

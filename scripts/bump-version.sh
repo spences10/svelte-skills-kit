@@ -1,5 +1,5 @@
 #!/bin/bash
-# Bump version in all plugin.json files
+# Bump version in all plugin.json and marketplace.json files
 
 set -e
 
@@ -15,6 +15,12 @@ fi
 if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
   echo "Error: Version must be semver format (e.g., 1.2.0)"
   exit 1
+fi
+
+# Update marketplace.json (root metadata + plugins array)
+if [ -f ".claude-plugin/marketplace.json" ]; then
+  sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"$VERSION\"/g" ".claude-plugin/marketplace.json"
+  echo "Updated: .claude-plugin/marketplace.json -> $VERSION"
 fi
 
 # Find and update all plugin.json files
