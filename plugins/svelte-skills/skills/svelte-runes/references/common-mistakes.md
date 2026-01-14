@@ -156,7 +156,71 @@ creating a dependency.
 
 ---
 
-### 4. Using Runes Inside Functions ❌
+### 4b. Using $effect to Sync State with DOM Elements ❌
+
+**WRONG - Dialog sync via effect:**
+
+```svelte
+<script>
+	let is_open = $state(false);
+	let dialog_element = $state<HTMLDialogElement>();
+
+	$effect(() => {
+		if (is_open) {
+			dialog_element?.showModal();
+		} else {
+			dialog_element?.close(); // Fires 'close' event → handler → loop!
+		}
+	});
+</script>
+
+<dialog bind:this={dialog_element} onclose={() => is_open = false}>
+```
+
+**Why it fails:** `dialog.close()` fires the native `close` event, which
+triggers your handler, which may cause loops or double-firing.
+
+**RIGHT - State class with @attach:**
+
+```ts
+// state.svelte.ts
+class DialogState {
+  dialog: HTMLDialogElement | null = null;
+  is_open = $state(false);
+
+  register = (el: HTMLDialogElement) => {
+    this.dialog = el;
+    return () => {
+      this.dialog = null;
+    };
+  };
+
+  open() {
+    if (!this.dialog?.open) {
+      this.is_open = true;
+      this.dialog?.showModal();
+    }
+  }
+
+  close() {
+    this.is_open = false;
+    this.dialog?.close();
+  }
+}
+```
+
+```svelte
+<!-- Component.svelte -->
+<dialog {@attach dialog_state.register} onclose={dialog_state.close}>
+```
+
+**Why:** Per Svelte docs, "$effect is best thought of as an escape hatch"
+and "you should not update state inside effects". Use @attach to register
+elements with state, then call DOM methods directly.
+
+---
+
+### 4c. Using Runes Inside Functions ❌
 
 **WRONG:**
 

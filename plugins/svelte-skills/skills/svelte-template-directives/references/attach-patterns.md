@@ -253,6 +253,85 @@ the imperative component API.
 </script>
 ```
 
+## Pattern 10: Registering Elements with Global State
+
+Use @attach to register DOM elements with state classes. This avoids $effect
+sync loops and is cleaner than bind:this chains.
+
+```ts
+// modal-state.svelte.ts
+class ModalState {
+  dialog: HTMLDialogElement | null = null;
+  input: HTMLInputElement | null = null;
+  is_open = $state(false);
+
+  // Attach functions return cleanup
+  register = (el: HTMLDialogElement) => {
+    this.dialog = el;
+    return () => {
+      this.dialog = null;
+    };
+  };
+
+  register_input = (el: HTMLInputElement) => {
+    this.input = el;
+    return () => {
+      this.input = null;
+    };
+  };
+
+  open() {
+    if (!this.dialog?.open) {
+      this.is_open = true;
+      this.dialog?.showModal();
+      this.input?.focus();
+    }
+  }
+
+  close() {
+    this.is_open = false;
+    this.dialog?.close();
+  }
+
+  toggle() {
+    this.is_open ? this.close() : this.open();
+  }
+}
+
+export const modal_state = new ModalState();
+```
+
+```svelte
+<!-- Modal.svelte -->
+<script>
+	import { modal_state } from './modal-state.svelte';
+</script>
+
+<dialog
+	{@attach modal_state.register}
+	onclose={modal_state.close}
+>
+	<input {@attach modal_state.register_input} />
+</dialog>
+```
+
+```svelte
+<!-- Anywhere else - no component ref needed -->
+<script>
+	import { modal_state } from './modal-state.svelte';
+</script>
+
+<button onclick={modal_state.toggle}>Open Modal</button>
+```
+
+**Benefits:**
+
+- No $effect needed for state/DOM sync
+- State controls element directly via imperative methods
+- Clean cleanup on unmount
+- Any component can open/close without bind:this chains
+- Avoids event loops from `dialog.close()` firing `onclose`
+
 ## When to Still Use `use:` Actions
 
 - Legacy code/libraries not yet updated
