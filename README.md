@@ -16,14 +16,15 @@ Svelte 5 and SvelteKit skills marketplace for Claude Code.
 
 ## Skills Included
 
-- **project-context** - Ensures project patterns are consulted
+- **ecosystem-guide** - Tool selection for spences10's Claude Code ecosystem
+- **layerchart-svelte5** - LayerChart patterns with Svelte 5 snippets
 - **svelte-components** - Component patterns (Bits UI, Ark UI, Melt UI)
 - **svelte-deployment** - Adapters, Vite config, pnpm, PWA
 - **svelte-runes** - $state, $derived, $effect, migration
+- **svelte-template-directives** - {@attach}, {@html}, {@render}, {@const}
 - **sveltekit-data-flow** - Load functions, form actions
 - **sveltekit-remote-functions** - command(), query(), form() patterns
 - **sveltekit-structure** - Routing, layouts, error handling, SSR
-- **layerchart-svelte5** - LayerChart patterns with Svelte 5 snippets
 
 ## Ecosystem
 
