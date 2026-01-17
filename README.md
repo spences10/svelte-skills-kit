@@ -28,21 +28,29 @@ Svelte 5 and SvelteKit skills marketplace for Claude Code.
 
 ## Skills Ecosystem
 
-| Project | Purpose |
-|---------|---------|
-| [claude-code-toolkit](https://github.com/spences10/claude-code-toolkit) | Performance, productivity, ecosystem tools |
-| [svelte-skills-kit](https://github.com/spences10/svelte-skills-kit) | Svelte 5 & SvelteKit skills marketplace |
-| [claude-skills-cli](https://github.com/spences10/claude-skills-cli) | CLI for creating skills with validation |
-| [svelte-claude-skills](https://github.com/spences10/svelte-claude-skills) | Original Svelte skills collection |
+Part of a connected suite of tools for Claude Code power users. These projects work together to give Claude Code persistent memory, better search, framework expertise, and self-improving skills.
 
-## Tools Ecosystem
+### Skills & Plugins
 
-| Project | Purpose |
-|---------|---------|
-| [mcp-omnisearch](https://github.com/spences10/mcp-omnisearch) | Unified search MCP (Tavily, Kagi, GitHub) |
-| [mcp-sqlite-tools](https://github.com/spences10/mcp-sqlite-tools) | Safe SQLite operations MCP |
-| [mcpick](https://github.com/spences10/mcpick) | Dynamic MCP server toggling |
-| [cclog](https://github.com/spences10/cclog) | Claude Code transcript → SQLite |
+Create, share, and use Claude Code skills with reliable activation.
+
+| Project                                                                   | What it does                                                                  |
+| ------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| [claude-code-toolkit](https://github.com/spences10/claude-code-toolkit)   | Performance plugins, productivity skills, and ecosystem guide                 |
+| [svelte-skills-kit](https://github.com/spences10/svelte-skills-kit)       | Production-ready Svelte 5 & SvelteKit skills (90%+ verified accuracy)         |
+| [claude-skills-cli](https://github.com/spences10/claude-skills-cli)       | Create skills with progressive disclosure validation and 84% activation hooks |
+| [svelte-claude-skills](https://github.com/spences10/svelte-claude-skills) | Original Svelte skills collection - now consolidated into svelte-skills-kit   |
+
+### MCP Servers & Tools
+
+Extend Claude Code's capabilities with MCP servers for search, databases, and usage tracking.
+
+| Project                                                           | What it does                                                          |
+| ----------------------------------------------------------------- | --------------------------------------------------------------------- |
+| [mcp-omnisearch](https://github.com/spences10/mcp-omnisearch)     | Unified search across Tavily, Brave, Kagi, Perplexity, and GitHub     |
+| [mcp-sqlite-tools](https://github.com/spences10/mcp-sqlite-tools) | Safe SQLite operations with schema inspection and query building      |
+| [mcpick](https://github.com/spences10/mcpick)                     | Toggle MCP servers on/off without restarting - reduce context bloat   |
+| [cclog](https://github.com/spences10/cclog)                       | Sync Claude Code transcripts to SQLite for usage analytics and search |
 
 ## Local Development
 
