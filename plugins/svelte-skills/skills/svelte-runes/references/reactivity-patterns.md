@@ -15,6 +15,25 @@
 | Bindable prop        | `$bindable()`          | Allow parent to bind to prop           |
 | Reactive class field | `$state` (class field) | Reactive property in class             |
 
+## $effect Decision Hierarchy
+
+**$effect is an escape hatch.** Before using it, ask:
+
+```
+Need to react to state change?
+├─ Can use event handler? → USE EVENT HANDLER (preferred)
+├─ Is it a computed value? → USE $derived
+├─ Is it DOM-specific? → USE @attach
+└─ External side effect? → USE $effect (with cleanup)
+```
+
+**Why this order matters:**
+
+- **Event handlers** - Run once per user action, predictable timing
+- **$derived** - Lazy, garbage-collectable, can be created anywhere
+- **@attach** - Lifecycle tied to element, auto-cleanup
+- **$effect** - Eager, requires lifecycle management, runs after DOM
+
 ## $state - Mutable Reactive State
 
 **Use when:** You need a variable that changes and triggers UI updates
@@ -62,9 +81,10 @@
 - Use `$derived.by()` for multi-line logic
 - Lazy - only computes when accessed
 
-## $effect - Side Effects
+## $effect - Side Effects (Escape Hatch)
 
-**Use when:** You need to run code in response to state changes
+**Use when:** You need external side effects that can't be handled by
+event handlers, $derived, or @attach.
 
 ```svelte
 <script>
@@ -77,19 +97,27 @@
 </script>
 ```
 
-**Use cases:**
+**Legitimate use cases:**
 
 - Logging/analytics
-- Updating external state (localStorage, DOM)
-- Fetching data
-- Setting up/tearing down subscriptions
+- Updating external state (localStorage, document.title)
+- Setting up/tearing down subscriptions (WebSocket, intervals)
+- Third-party library integration (when @attach isn't suitable)
 
 **Key points:**
 
-- Runs after DOM updates
-- Auto-tracks dependencies (any $state accessed)
+- **Eager execution** - Runs whenever dependencies change, until destroyed
+- **Lifecycle-bound** - Can only be created in effect roots (components)
+- **Runs after DOM** - Not before (use `$effect.pre` for pre-DOM)
+- **No SSR** - Effects don't run during server-side rendering
 - Return cleanup function: `return () => cleanup()`
 - Don't update state that effect depends on (infinite loop!)
+
+**Why $derived is preferred for computed values:**
+
+- $derived is **lazy** - only computes when accessed
+- $derived is **garbage-collectable** - no lifecycle management needed
+- $effect is **eager** - keeps running until destroyed
 
 ## $effect.pre - Pre-DOM Effects
 

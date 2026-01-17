@@ -31,6 +31,95 @@
 
 ---
 
+### 1b. Using $effect When Event Handler Works ❌
+
+**WRONG:**
+
+```svelte
+<script>
+	let count = $state(0);
+	let lastClicked = $state(null);
+
+	$effect(() => {
+		// BAD - reacting to count change just to log
+		console.log(`Count is now ${count}`);
+	});
+</script>
+
+<button onclick={() => count++}>Increment</button>
+```
+
+**RIGHT:**
+
+```svelte
+<script>
+	let count = $state(0);
+
+	function increment() {
+		count++;
+		console.log(`Count is now ${count}`); // Side effect in handler
+	}
+</script>
+
+<button onclick={increment}>Increment</button>
+```
+
+**Why:** Per Svelte docs: "If you can put your side effects in an event
+handler, that's almost always preferable." Event handlers are predictable
+and run once per action.
+
+---
+
+### 1c. Using $effect to Sync Linked Values ❌
+
+**WRONG:**
+
+```svelte
+<script>
+	let celsius = $state(0);
+	let fahrenheit = $state(32);
+
+	// Two effects trying to sync each other - fragile!
+	$effect(() => {
+		fahrenheit = (celsius * 9) / 5 + 32;
+	});
+
+	$effect(() => {
+		celsius = ((fahrenheit - 32) * 5) / 9;
+	});
+</script>
+
+<input type="number" bind:value={celsius} />
+<input type="number" bind:value={fahrenheit} />
+```
+
+**RIGHT - Use oninput callbacks:**
+
+```svelte
+<script>
+	let celsius = $state(0);
+	let fahrenheit = $state(32);
+
+	function updateFromCelsius(e) {
+		celsius = +e.target.value;
+		fahrenheit = (celsius * 9) / 5 + 32;
+	}
+
+	function updateFromFahrenheit(e) {
+		fahrenheit = +e.target.value;
+		celsius = ((fahrenheit - 32) * 5) / 9;
+	}
+</script>
+
+<input type="number" value={celsius} oninput={updateFromCelsius} />
+<input type="number" value={fahrenheit} oninput={updateFromFahrenheit} />
+```
+
+**Why:** Per Svelte docs, avoid effects for "connecting one value to
+another". Use `oninput` callbacks or function bindings instead.
+
+---
+
 ### 2. Reassigning $derived Values ⚠️
 
 **Note:** As of Svelte 5.25+, `$derived` CAN be reassigned, but will
@@ -645,13 +734,14 @@ proxies.
 
 ## Best Practices Summary
 
-1. ✅ Use `$derived` for computed values, not `$effect`
-2. ✅ Never reassign `$derived` values
-3. ✅ Don't update dependencies inside `$effect`
-4. ✅ Keep runes at component top-level
-5. ✅ Reassign objects/arrays for nested changes
+1. ✅ **Prefer event handlers** over `$effect` for side effects
+2. ✅ Use `$derived` for computed values, not `$effect`
+3. ✅ Use `@attach` for DOM element operations
+4. ✅ Don't update dependencies inside `$effect`
+5. ✅ Keep runes at component top-level
 6. ✅ Use consistent Svelte 5 syntax (no mixing)
 7. ✅ Wrap reactive variables with `$state()`
 8. ✅ Use `$bindable()` for two-way binding
 9. ✅ Use `{@render children()}` not `{children}`
 10. ✅ Use `onclick` not `on:click`
+11. ✅ Remember: `$effect` doesn't run during SSR
