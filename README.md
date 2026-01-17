@@ -26,18 +26,23 @@ Svelte 5 and SvelteKit skills marketplace for Claude Code.
 - **sveltekit-remote-functions** - command(), query(), form() patterns
 - **sveltekit-structure** - Routing, layouts, error handling, SSR
 
-## Ecosystem
+## Skills Ecosystem
 
-Part of the [@spences10](https://github.com/spences10) Claude Code ecosystem:
+| Project | Purpose |
+|---------|---------|
+| [claude-code-toolkit](https://github.com/spences10/claude-code-toolkit) | Performance, productivity, ecosystem tools |
+| [svelte-skills-kit](https://github.com/spences10/svelte-skills-kit) | Svelte 5 & SvelteKit skills marketplace |
+| [claude-skills-cli](https://github.com/spences10/claude-skills-cli) | CLI for creating skills with validation |
+| [svelte-claude-skills](https://github.com/spences10/svelte-claude-skills) | Original Svelte skills collection |
 
-| Repo                                                                    | Description                       |
-| ----------------------------------------------------------------------- | --------------------------------- |
-| [claude-code-toolkit](https://github.com/spences10/claude-code-toolkit) | Performance, productivity, skills |
-| [mcp-omnisearch](https://github.com/spences10/mcp-omnisearch)           | Unified search MCP (Tavily, Kagi) |
-| [mcp-sqlite-tools](https://github.com/spences10/mcp-sqlite-tools)       | Safe SQLite operations MCP        |
-| [mcpick](https://github.com/spences10/mcpick)                           | Dynamic MCP server toggling       |
-| [cclog](https://github.com/spences10/cclog)                             | Claude Code transcript → SQLite   |
-| [claude-skills-cli](https://github.com/spences10/claude-skills-cli)     | CLI for creating skills           |
+## Tools Ecosystem
+
+| Project | Purpose |
+|---------|---------|
+| [mcp-omnisearch](https://github.com/spences10/mcp-omnisearch) | Unified search MCP (Tavily, Kagi, GitHub) |
+| [mcp-sqlite-tools](https://github.com/spences10/mcp-sqlite-tools) | Safe SQLite operations MCP |
+| [mcpick](https://github.com/spences10/mcpick) | Dynamic MCP server toggling |
+| [cclog](https://github.com/spences10/cclog) | Claude Code transcript → SQLite |
 
 ## Local Development
 
