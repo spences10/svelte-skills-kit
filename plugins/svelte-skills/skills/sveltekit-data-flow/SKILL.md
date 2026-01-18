@@ -2,7 +2,7 @@
 name: sveltekit-data-flow
 # IMPORTANT: Keep description on ONE line for Claude Code compatibility
 # prettier-ignore
-description: SvelteKit data flow guidance. Use for load functions, form actions, and server/client data. Covers +page.server.ts vs +page.ts, serialization, fail(), redirect(), error().
+description: SvelteKit data flow guidance. Use for load functions, form actions, server/client data, and invalidation. Covers +page.server.ts vs +page.ts, serialization, fail(), redirect(), error(), invalidateAll().
 ---
 
 # SvelteKit Data Flow
@@ -52,6 +52,8 @@ export const actions = {
   serialize
 - [error-redirect-handling.md](references/error-redirect-handling.md) -
   fail/redirect/error
+- [client-auth-invalidation.md](references/client-auth-invalidation.md) -
+  invalidateAll() after client-side auth
 
 ## Notes
 
