@@ -354,6 +354,49 @@ export const load = async ({ locals }) => {
 | **Stays on page?**   | Yes               | No (navigates)  | No (error page) |
 | **Example**          | Invalid email     | After save      | Not found       |
 
+## Client-Side Navigation After Auth
+
+When using client-side auth (e.g., Better Auth client), **always use `goto()` with `invalidateAll: true`** to ensure layout data refreshes:
+
+```svelte
+<script>
+	import { goto } from '$app/navigation';
+	import { auth_client } from '$lib/auth-client';
+
+	async function handle_signin() {
+		const result = await auth_client.signIn.email({ email, password });
+
+		if (!result.error) {
+			// ✅ CORRECT: invalidateAll ensures layout load functions re-run
+			await goto('/dashboard', { invalidateAll: true });
+		}
+	}
+</script>
+```
+
+### ❌ Common Mistake: Separate invalidateAll + goto
+
+```typescript
+// WRONG: Data might not refresh before navigation
+await invalidateAll();
+goto('/dashboard');
+
+// ALSO WRONG: goto doesn't wait for invalidation
+await invalidateAll();
+await goto('/dashboard');
+```
+
+### ✅ Correct Pattern
+
+```typescript
+// RIGHT: Single call with invalidateAll option
+await goto('/dashboard', { invalidateAll: true });
+```
+
+**Why this matters:** After client-side auth, cookies are set but the root layout's `load` function (which typically checks `auth.api.getSession()`) has cached data. Using `invalidateAll: true` forces all load functions to re-run with the new session cookie.
+
+**Note:** Server-side redirects with `throw redirect()` don't have this problem because they trigger a full page load.
+
 ## Quick Checklist
 
 - ✅ Using `return fail()` for validation errors?
@@ -361,3 +404,4 @@ export const load = async ({ locals }) => {
 - ✅ Using `throw error()` (not return) for fatal errors?
 - ✅ Not catching redirects/errors without rethrowing?
 - ✅ Using status code 303 for POST redirects?
+- ✅ Using `goto(url, { invalidateAll: true })` after client-side auth?

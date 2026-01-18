@@ -39,7 +39,7 @@ export const create_post = command(
   async ({ title, content }) => {
     const post = await db.posts.create({ title, content });
     return { id: post.id };
-  }
+  },
 );
 ```
 
@@ -264,7 +264,7 @@ export const update_settings = command(
   async (settings) => {
     // settings is fully typed and validated
     await db.settings.update(settings);
-  }
+  },
 );
 ```
 
@@ -337,6 +337,49 @@ export const get_session = command(async () => {
 });
 ```
 
+### ⚠️ Cookie Limitation
+
+**`event.cookies.set()` in `command()` functions does NOT propagate Set-Cookie headers to the browser.** This is a known limitation.
+
+❌ **Don't use command() for auth that needs to set cookies:**
+
+```typescript
+// BROKEN: Cookies won't be set in browser
+export const demo_login = command(async () => {
+  const event = getRequestEvent();
+  const result = await auth.api.signInEmail({ ... });
+
+  // This won't work - cookie not sent to browser!
+  event.cookies.set('session', token, { path: '/' });
+
+  return { success: true };
+});
+```
+
+✅ **Use client-side auth SDK instead:**
+
+```svelte
+<script>
+  import { goto } from '$app/navigation';
+  import { auth_client } from '$lib/auth-client';
+
+  async function handle_login() {
+    // Client-side auth properly handles cookies
+    const result = await auth_client.signIn.email({ email, password });
+
+    if (!result.error) {
+      await goto('/dashboard', { invalidateAll: true });
+    }
+  }
+</script>
+```
+
+**For auth operations that need cookies**, use:
+
+- Client-side auth SDK (Better Auth, Auth.js client)
+- Form actions with `throw redirect()`
+- API routes (`+server.ts`)
+
 ## Error Handling
 
 Thrown errors are serialized and re-thrown on the client:
@@ -350,7 +393,7 @@ export const risky_action = command(
       throw new Error("Item not found");
     }
     return item;
-  }
+  },
 );
 
 // Client side:
@@ -436,7 +479,7 @@ export const get_post = query(
   v.object({ id: v.number() }),
   async ({ id }): Promise<{ title: string; body: string }> => {
     return await db.posts.find(id);
-  }
+  },
 );
 
 // Client - fully typed!
