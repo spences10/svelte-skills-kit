@@ -50,7 +50,7 @@ Extend Claude Code's capabilities with MCP servers for search, databases, and us
 | [mcp-omnisearch](https://github.com/spences10/mcp-omnisearch)     | Unified search across Tavily, Brave, Kagi, Perplexity, and GitHub     |
 | [mcp-sqlite-tools](https://github.com/spences10/mcp-sqlite-tools) | Safe SQLite operations with schema inspection and query building      |
 | [mcpick](https://github.com/spences10/mcpick)                     | Toggle MCP servers on/off without restarting - reduce context bloat   |
-| [cclog](https://github.com/spences10/cclog)                       | Sync Claude Code transcripts to SQLite for usage analytics and search |
+| [ccrecall](https://github.com/spences10/ccrecall)                 | Sync Claude Code transcripts to SQLite for usage analytics and search |
 
 ## Local Development
 

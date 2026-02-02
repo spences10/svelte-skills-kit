@@ -13,7 +13,7 @@ A curated set of tools for enhanced Claude Code workflows.
 | --------------------- | ------ | ------------------------------------------------------------ |
 | **toolkit-skills**    | Plugin | Forced-eval hook + core skills (pair with any skills plugin) |
 | **svelte-skills-kit** | Plugin | Svelte/SvelteKit skills (pair with toolkit-skills)           |
-| **cclog**             | CLI    | Sync transcripts → SQLite for analytics                      |
+| **ccrecall**          | CLI    | Sync transcripts → SQLite for analytics                      |
 | **mcp-omnisearch**    | MCP    | Unified search (Tavily, Kagi, GitHub, etc.)                  |
 | **mcp-sqlite-tools**  | MCP    | Safe SQLite operations                                       |
 | **mcpick**            | CLI    | Toggle MCP servers dynamically                               |
@@ -44,7 +44,7 @@ claude plugin install toolkit-skills@claude-code-toolkit
 
 ### "I want to track my Claude Code usage"
 
-→ **cclog** - Sync transcripts, query with mcp-sqlite-tools
+→ **ccrecall** - Sync transcripts, query with mcp-sqlite-tools
 
 ### "I'm building with Svelte/SvelteKit"
 
@@ -76,7 +76,7 @@ toolkit-skills hook ensures skills from any plugin activate on relevant prompts.
 | ------------------- | ------------------------------------------------ |
 | claude-code-toolkit | https://github.com/spences10/claude-code-toolkit |
 | svelte-skills-kit   | https://github.com/spences10/svelte-skills-kit   |
-| cclog               | https://github.com/spences10/cclog               |
+| ccrecall            | https://github.com/spences10/ccrecall            |
 | mcp-omnisearch      | https://github.com/spences10/mcp-omnisearch      |
 | mcp-sqlite-tools    | https://github.com/spences10/mcp-sqlite-tools    |
 | mcpick              | https://github.com/spences10/mcpick              |
