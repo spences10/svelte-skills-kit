@@ -281,27 +281,103 @@ For custom tooltip behaviour (e.g., individual bar tooltips):
 </Chart>
 ```
 
+## Calendar Heatmap
+
+```svelte
+<script lang="ts">
+	import { Calendar, Chart, Svg, Tooltip } from 'layerchart'
+	import { scaleSequential } from 'd3-scale'
+	import { interpolateGreens } from 'd3-scale-chromatic'
+
+	type DayData = { date: Date; value: number }
+	let { data }: { data: DayData[] } = $props()
+
+	const colorScale = scaleSequential(interpolateGreens).domain([0, 10])
+</script>
+
+<div class="h-32">
+	<Chart {data} x="date" tooltip={{ mode: 'band' }}>
+		<Svg>
+			<Calendar
+				{colorScale}
+				cellSize={12}
+				cellGap={2}
+				monthLabels
+				weekdayLabels
+			/>
+		</Svg>
+		<Tooltip.Root>
+			{#snippet children({ data }: { data: DayData })}
+				<Tooltip.Header>
+					{data.date.toLocaleDateString()}
+				</Tooltip.Header>
+				<Tooltip.Item label="Count" value={data.value} />
+			{/snippet}
+		</Tooltip.Root>
+	</Chart>
+</div>
+```
+
+## Pie/Donut Chart
+
+```svelte
+<script lang="ts">
+	import { Arc, Chart, Pie, Svg, Tooltip } from 'layerchart'
+
+	type SliceData = { label: string; value: number; color: string }
+	let { data }: { data: SliceData[] } = $props()
+</script>
+
+<div class="h-64">
+	<Chart {data} tooltip={{ mode: 'manual' }}>
+		<Svg>
+			<Pie
+				value="value"
+				innerRadius={40}
+				padAngle={0.02}
+				cornerRadius={4}
+			>
+				{#snippet children({ arcs })}
+					{#each arcs as arc}
+						<Arc data={arc} fill={arc.data.color} />
+					{/each}
+				{/snippet}
+			</Pie>
+		</Svg>
+	</Chart>
+</div>
+```
+
 ## Common Imports
 
 ```ts
-import { scaleBand, scaleTime, scaleOrdinal } from 'd3-scale'
+import { scaleBand, scaleTime, scaleOrdinal } from "d3-scale";
 import {
-	Area,
-	Axis,
-	Bar,
-	Bars,
-	Chart,
-	Circle,
-	Highlight,
-	Labels,
-	Layer,
-	LinearGradient,
-	Points,
-	RectClipPath,
-	Rule,
-	Spline,
-	Svg,
-	Text,
-	Tooltip,
-} from 'layerchart'
+  Arc,
+  Area,
+  Axis,
+  Bar,
+  Bars,
+  Calendar,
+  Canvas,
+  Chart,
+  Circle,
+  ForceGraph,
+  ForceSimulation,
+  Group,
+  Highlight,
+  Labels,
+  Layer,
+  LinearGradient,
+  Link,
+  Pie,
+  Points,
+  RectClipPath,
+  Rule,
+  Spline,
+  Svg,
+  Text,
+  Tooltip,
+  Transform,
+} from "layerchart";
 ```

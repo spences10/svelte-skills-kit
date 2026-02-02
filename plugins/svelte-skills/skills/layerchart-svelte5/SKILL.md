@@ -6,27 +6,22 @@ description: LayerChart Svelte 5 patterns. Use for chart components with tooltip
 
 # LayerChart Svelte 5
 
-Use **next.layerchart.com** docs (NOT layerchart.com - that's Svelte
-4).
+Docs: **next.layerchart.com** (NOT layerchart.com - that's Svelte 4)
+
+## Install
+
+```bash
+npm i layerchart@next d3-scale
+```
+
+**CRITICAL**: Use `@next` tag. Stable (1.x) is Svelte 4 only.
 
 ## Quick Start
 
 ```svelte
 <Chart {data} x="date" y="value" tooltip={{ mode: 'bisect-x' }}>
-	<Svg>
-		<Axis placement="left" grid rule />
-		<Area
-			class="fill-primary/20"
-			line={{ class: 'stroke-primary' }}
-		/>
-		<Highlight points lines />
-	</Svg>
-	<Tooltip.Root>
-		{#snippet children({ data })}
-			<Tooltip.Header>{data.date}</Tooltip.Header>
-			<Tooltip.Item label="Value" value={data.value} />
-		{/snippet}
-	</Tooltip.Root>
+	<Svg><Area class="fill-primary/20" /><Highlight points /></Svg>
+	<Tooltip.Root>{#snippet children({ data })}{data.value}{/snippet}</Tooltip.Root>
 </Chart>
 ```
 
@@ -35,8 +30,8 @@ Use **next.layerchart.com** docs (NOT layerchart.com - that's Svelte
 - **Tooltip**: `{#snippet children({ data })}` - NOT `let:data`
 - **Chart context**: `{#snippet children({ context })}`
 - **Gradient**: `{#snippet children({ gradient })}`
-- **Must enable**:
-  `tooltip={{ mode: 'band' | 'bisect-x' | 'quadtree' }}`
+- **Enable tooltip**: `tooltip={{ mode: 'band' | 'bisect-x' }}`
+- **Type data**: `{#snippet children({ data }: { data: MyType })}`
 
 ## Tooltip Modes
 
@@ -47,17 +42,10 @@ Use **next.layerchart.com** docs (NOT layerchart.com - that's Svelte
 | `quadtree-x` | Area (nearest x)       |
 | `quadtree`   | Scatter plots          |
 
-## Type the Snippet
-
-```svelte
-{#snippet children({ data }: { data: MyDataType })}
-```
-
 ## References
 
-- [references/full-patterns.md](references/full-patterns.md) - All
-  patterns
-- [references/tooltip-modes.md](references/tooltip-modes.md) - Mode
-  details
-- Clone:
-  `git clone --branch next https://github.com/techniq/layerchart.git`
+- [full-patterns.md](references/full-patterns.md) - Area, Bar, Pie,
+  Calendar
+- [tooltip-modes.md](references/tooltip-modes.md) - All modes
+- [graph-patterns.md](references/graph-patterns.md) - ForceGraph,
+  zoom/pan
