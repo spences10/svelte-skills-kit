@@ -65,6 +65,45 @@ const user1 = await get_user({ id: "1" });
 const user2 = await get_user({ id: "2" });
 ```
 
+### query.batch()
+
+**Purpose:** Solve the n+1 problem by batching requests in the same macrotask.
+
+Unlike regular `query()` which may batch automatically, `query.batch()`
+explicitly groups requests and lets you resolve them efficiently (e.g.,
+single DB query for multiple IDs).
+
+```typescript
+import { query } from "$app/server";
+import * as v from "valibot";
+
+export const get_weather = query.batch(v.string(), async (cities) => {
+  // cities is an array of all requested city names
+  const weather = await db.sql`
+    SELECT * FROM weather WHERE city = ANY(${cities})
+  `;
+
+  // Return a resolver function
+  const lookup = new Map(weather.map(w => [w.city, w]));
+  return (city) => lookup.get(city);
+});
+```
+
+**Usage in component:**
+
+```svelte
+{#each cities as city}
+  <!-- All these calls batch into ONE server request -->
+  <CityWeather weather={await get_weather(city.id)} />
+{/each}
+```
+
+**How it works:**
+1. Multiple calls in same macrotask are collected
+2. Server receives array of all inputs
+3. Your handler returns a resolver function
+4. SvelteKit calls resolver for each input to get individual results
+
 ## Using Queries in Svelte Components
 
 Queries return promises. With `experimental.async: true` (Svelte 5.36+),
@@ -221,30 +260,97 @@ shows on initial load, subsequent refreshes update seamlessly:
 
 **Purpose:** Generate form props for progressive enhancement
 
-**Usage:**
+**Basic usage:**
 
 ```typescript
 import { form } from "$app/server";
 import * as v from "valibot";
 
-export const login_form = form(
+export const create_post = form(
   v.object({
-    email: v.string(),
-    password: v.string(),
+    title: v.string(),
+    content: v.string(),
   }),
-  async ({ email, password }) => {
-    // Handle login
-    return { success: true };
+  async ({ title, content }) => {
+    await db.posts.create({ title, content });
   }
 );
-
-// In component:
-<form {...login_form}>
-  <input name="email" />
-  <input name="password" type="password" />
-  <button>Login</button>
-</form>;
 ```
+
+### Form Field Spreading
+
+Use `.fields` with `.as()` to get typed input attributes:
+
+```svelte
+<form {...createPost}>
+  <label>
+    Title
+    <input {...createPost.fields.title.as('text')} />
+  </label>
+
+  <label>
+    Content
+    <textarea {...createPost.fields.content.as('text')} />
+  </label>
+
+  <button>Publish</button>
+</form>
+```
+
+**What `.as()` provides:**
+- Correct `type` attribute
+- `name` for form data construction
+- `value` populated on validation error (user doesn't re-enter)
+- `aria-invalid` for accessibility
+
+**Input types:** `'text'`, `'email'`, `'password'`, `'number'`, `'checkbox'`, etc.
+
+### Private Fields (Sensitive Data)
+
+Prefix field names with `_` to prevent repopulation on validation error:
+
+```svelte
+<form {...register}>
+  <input {...register.fields.username.as('text')} />
+  <!-- Password won't be sent back if validation fails -->
+  <input {...register.fields._password.as('password')} />
+  <button>Sign up</button>
+</form>
+```
+
+Use for passwords, credit cards, sensitive data that shouldn't round-trip.
+
+### Multiple Submit Buttons
+
+Add a field for button value, use `.as('submit', value)`:
+
+```svelte
+<form {...loginOrRegister}>
+  <input {...loginOrRegister.fields.username.as('text')} />
+  <input {...loginOrRegister.fields._password.as('password')} />
+
+  <button {...loginOrRegister.fields.action.as('submit', 'login')}>Login</button>
+  <button {...loginOrRegister.fields.action.as('submit', 'register')}>Register</button>
+</form>
+```
+
+### enhance() Callback
+
+Customize form submission behavior:
+
+```svelte
+<form {...createPost.enhance(async ({ form, data, submit }) => {
+  try {
+    await submit();
+    form.reset();
+    showToast('Published!');
+  } catch (error) {
+    showToast('Something went wrong');
+  }
+})}>
+```
+
+**Note:** With `enhance`, form is NOT auto-reset - call `form.reset()` manually.
 
 ## Validation
 
@@ -449,20 +555,85 @@ export const admin_action = command(schema, async (data) => {
 });
 ```
 
-### Optimistic Updates
+### Single-Flight Mutations with .updates()
+
+By default, all queries refresh after form submission. Use `.updates()`
+for efficient client-driven single-flight mutations:
+
+**In enhance callback (forms):**
+
+```svelte
+<form {...createPost.enhance(async ({ submit }) => {
+  // Only refresh getPosts, not all queries
+  await submit().updates(getPosts());
+})}>
+```
+
+**With commands:**
 
 ```typescript
-// Client code
+// Refresh specific query after command
+await addLike(item.id).updates(getLikes(item.id));
+```
+
+### Optimistic Updates with .withOverride()
+
+Show instant UI feedback while mutation is in flight:
+
+```typescript
+// Optimistic increment - shows immediately, auto-rollback on error
+await addLike(item.id).updates(
+  getLikes(item.id).withOverride((n) => n + 1)
+);
+```
+
+**Form example:**
+
+```svelte
+<form {...addTodo.enhance(async ({ data, submit }) => {
+  await submit().updates(
+    todos.withOverride((list) => [...list, { text: data.get('text') }])
+  );
+})}>
+```
+
+**How it works:**
+1. Override applied immediately (instant UI)
+2. Server mutation runs
+3. On success: real data replaces override
+4. On error: override released, original data restored
+
+### Server-Side Query Updates
+
+Inside command/form handlers, use `.refresh()` or `.set()`:
+
+```typescript
+export const updatePost = form(schema, async (data) => {
+  const result = await externalApi.update(post);
+
+  // Option 1: Refetch from DB
+  await getPost(post.id).refresh();
+
+  // Option 2: Set directly (if you have the data)
+  await getPost(post.id).set(result);
+});
+```
+
+This sends updated data back with the response - no second round-trip.
+
+### Manual Optimistic Updates (Alternative)
+
+For cases where built-in `.withOverride()` doesn't fit:
+
+```typescript
 let items = $state([...]);
 
 async function addItem(item) {
-	// Optimistic update
 	items = [...items, item];
 
 	try {
 		await create_item(item);
 	} catch (error) {
-		// Rollback on error
 		items = items.filter(i => i !== item);
 		throw error;
 	}
