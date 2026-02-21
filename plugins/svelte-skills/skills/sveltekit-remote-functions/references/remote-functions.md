@@ -106,13 +106,19 @@ export const get_weather = query.batch(v.string(), async (cities) => {
 
 ## Using Queries in Svelte Components
 
-Queries return promises. With `experimental.async: true` (Svelte 5.36+),
-use `<svelte:boundary>` for flicker-free updates.
+Queries return promises. Use `{#await}` blocks or the imperative
+`query.current`/`query.loading`/`query.error` properties.
 
-### Pattern 1: svelte:boundary (Recommended)
+> **⚠️ Known Bug:** `<svelte:boundary>` + `{@const await}` causes an
+> infinite navigation loop during client-side page transitions when
+> multiple pages share `query()` calls. The browser freezes as
+> components mount/destroy endlessly. See
+> [sveltejs/svelte#17717](https://github.com/sveltejs/svelte/issues/17717)
+> (open) and
+> [sveltejs/svelte#17512](https://github.com/sveltejs/svelte/issues/17512).
+> Use `{#await}` or imperative query properties until this is fixed.
 
-Use `<svelte:boundary>` with `{@const await}` - pending only shows on
-initial load, not on refreshes:
+### Pattern 1: {#await} Block (Recommended)
 
 ```svelte
 <script lang="ts">
@@ -122,19 +128,40 @@ initial load, not on refreshes:
 	const data = get_posts()
 </script>
 
-<svelte:boundary>
-	{#snippet pending()}
-		<p>Loading...</p>
-	{/snippet}
-
-	{@const posts = await data}
+{#await data}
+	<p>Loading...</p>
+{:then posts}
 	{#each posts as post}
 		<article>{post.title}</article>
 	{/each}
-</svelte:boundary>
+{:catch error}
+	<p>Error: {error.message}</p>
+{/await}
 ```
 
-### Pattern 2: Reactive Query with Navigation
+### Pattern 2: Imperative Query Properties
+
+No `experimental.async` needed — works with any Svelte 5 version:
+
+```svelte
+<script lang="ts">
+	import { get_posts } from '$lib/posts.remote'
+
+	const query = get_posts()
+</script>
+
+{#if query.loading}
+	<p>Loading...</p>
+{:else if query.error}
+	<p>Error: {query.error.message}</p>
+{:else}
+	{#each query.current as post}
+		<article>{post.title}</article>
+	{/each}
+{/if}
+```
+
+### Pattern 3: Reactive Query with Navigation
 
 For queries that depend on route params:
 
@@ -150,21 +177,17 @@ For queries that depend on route params:
 	let data = $derived(get_post({ slug }))
 </script>
 
-<svelte:boundary>
-	{#snippet pending()}
-		<p>Loading...</p>
-	{/snippet}
-
-	{@const post = await data}
+{#await data}
+	<p>Loading...</p>
+{:then post}
 	<h1>{post.title}</h1>
 	<div>{@html post.content}</div>
-</svelte:boundary>
+{:catch error}
+	<p>Error: {error.message}</p>
+{/await}
 ```
 
-### Polling with Refresh (No Flicker)
-
-Use `.refresh()` with `<svelte:boundary>` - the pending snippet only
-shows on initial load, subsequent refreshes update seamlessly:
+### Polling with Refresh
 
 ```svelte
 <script lang="ts">
@@ -183,49 +206,25 @@ shows on initial load, subsequent refreshes update seamlessly:
 	})
 </script>
 
-<svelte:boundary>
-	{#snippet pending()}
-		<p>Loading...</p>
-	{/snippet}
-
-	{@const result = await data}
+{#await data}
+	<p>Loading...</p>
+{:then result}
 	<p>{result.total} active visitors</p>
-</svelte:boundary>
+{/await}
 ```
 
 **Key points:**
 
 - Queries are cached while on the page (`get_posts() === get_posts()`)
 - Call `.refresh()` on the query to refetch from server
-- `<svelte:boundary pending>` only shows on initial load, not refreshes
-- No flicker when polling - UI updates smoothly
+- Use imperative `query.current` for flicker-free refresh updates
 
 ### Common Mistakes
 
-❌ **Wrong: $derived.by + {#await} causes flicker on refresh**
+❌ **Wrong: svelte:boundary + {@const await} — navigation loop bug**
 
 ```svelte
-<script>
-	let result = $derived.by(async () => {
-		return await get_data()
-	})
-</script>
-
-<!-- Shows pending state on EVERY update = flicker -->
-{#await result}
-	<p>Loading...</p>
-{:then data}
-	...
-{/await}
-```
-
-✅ **Right: Use svelte:boundary - pending only on initial load**
-
-```svelte
-<script>
-	const data = get_data()
-</script>
-
+<!-- DO NOT USE until sveltejs/svelte#17717 is fixed -->
 <svelte:boundary>
 	{#snippet pending()}
 		<p>Loading...</p>
@@ -235,6 +234,9 @@ shows on initial load, subsequent refreshes update seamlessly:
 	...
 </svelte:boundary>
 ```
+
+This causes infinite mount/destroy loops during client-side navigation
+when pages share `query()` calls.
 
 ❌ **Wrong: Not tracking reactive dependencies**
 

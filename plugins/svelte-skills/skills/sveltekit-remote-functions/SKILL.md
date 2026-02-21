@@ -43,9 +43,10 @@ export const delete_user = command(
 - Args/returns must be JSON-serializable
 - Schema validation via StandardSchemaV1 (Valibot/Zod)
 - `getRequestEvent()` available for cookies/headers access
-- **In components:** Use `<svelte:boundary>` + `{@const await}` (no flicker)
+- **In components:** Use `{#await}` blocks (safe) or `query.current`/`query.loading` properties
+- **Warning:** `<svelte:boundary>` + `{@const await}` causes infinite navigation loops with shared queries ([sveltejs/svelte#17717](https://github.com/sveltejs/svelte/issues/17717))
 - **Refresh queries:** Call `query().refresh()` - updates without flicker
-- **Last verified:** 2025-12-24
+- **Last verified:** 2026-02-21
 
 <!--
 PROGRESSIVE DISCLOSURE GUIDELINES:

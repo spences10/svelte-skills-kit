@@ -22,11 +22,17 @@
 
 ## Pending UI (Loading States)
 
-With `experimental.async: true` (Svelte 5.36+), use `{@const await}`
-directly - the `pending` snippet only shows on initial load, not on
-subsequent updates (no flicker on refresh):
+> **⚠️ Known Bug:** `<svelte:boundary>` + `{@const await}` causes
+> infinite navigation loops during client-side page transitions when
+> pages share async queries. See
+> [sveltejs/svelte#17717](https://github.com/sveltejs/svelte/issues/17717).
+> Use `{#await}` blocks until this is fixed.
+
+With `experimental.async: true` (Svelte 5.36+), `{@const await}` is
+possible but **not safe for pages with shared queries or navigation**:
 
 ```svelte
+<!-- ⚠️ Causes navigation loops - use {#await} instead -->
 <svelte:boundary>
 	{#snippet pending()}
 		<LoadingSpinner />
@@ -37,21 +43,37 @@ subsequent updates (no flicker on refresh):
 </svelte:boundary>
 ```
 
+**Safe alternative:**
+
+```svelte
+{#await loadData()}
+	<LoadingSpinner />
+{:then data}
+	<DataView {data} />
+{:catch error}
+	<p>Error: {error.message}</p>
+{/await}
+```
+
 ## Combined Error + Pending
+
+Use `svelte:boundary` for **error catching only**, with `{#await}` for
+async data:
 
 ```svelte
 <svelte:boundary onerror={logError}>
-	{#snippet pending()}
-		<p>Loading user...</p>
-	{/snippet}
-
 	{#snippet failed(error, reset)}
 		<p>Failed to load user</p>
 		<button onclick={reset}>Retry</button>
 	{/snippet}
 
-	{@const user = await fetchUser()}
-	<UserProfile {user} />
+	{#await fetchUser()}
+		<p>Loading user...</p>
+	{:then user}
+		<UserProfile {user} />
+	{:catch error}
+		<p>Error: {error.message}</p>
+	{/await}
 </svelte:boundary>
 ```
 
@@ -125,3 +147,4 @@ Inner boundary catches first:
 - `reset` function lets users retry
 - Errors in event handlers are NOT caught
 - Requires `experimental.async: true` in svelte.config.js for `{@const await}`
+- **⚠️ Bug:** `{@const await}` + navigation causes infinite loops ([#17717](https://github.com/sveltejs/svelte/issues/17717)) — use `{#await}` instead
