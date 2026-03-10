@@ -26,7 +26,7 @@ export const delete_user = command(
   async ({ id }) => {
     await db.users.delete(id);
     return { success: true };
-  }
+  },
 );
 
 // Call from client: await delete_user({ id: '123' });
@@ -43,9 +43,10 @@ export const delete_user = command(
 - Args/returns must be JSON-serializable
 - Schema validation via StandardSchemaV1 (Valibot/Zod)
 - `getRequestEvent()` available for cookies/headers access
-- **In components:** Use `{#await}` blocks (safe) or `query.current`/`query.loading` properties
+- **In components:** No-param `query()` works with `{#await}`. Parameterized queries with `$derived` return Query objects — use `.ready`/`.current` or `$derived(await ...)` with experimental async
 - **Warning:** `<svelte:boundary>` + `{@const await}` causes infinite navigation loops with shared queries ([sveltejs/svelte#17717](https://github.com/sveltejs/svelte/issues/17717))
 - **Refresh queries:** Call `query().refresh()` - updates without flicker
+- **Polling safety:** Always `.catch()` on `query().refresh()` in intervals — errors reject the Promise and evict the query from cache
 - **Last verified:** 2026-02-21
 
 <!--

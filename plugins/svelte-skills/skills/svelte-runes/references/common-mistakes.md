@@ -120,6 +120,56 @@ another". Use `oninput` callbacks or function bindings instead.
 
 ---
 
+### 1d. Using $effect to Sync Async Data into Form State ❌
+
+**WRONG:**
+
+```svelte
+<script>
+	let query = $derived(get_item({ id }))
+	let name = $state('')
+
+	// BAD — $effect as escape hatch to sync query → form state
+	$effect(() => {
+		if (query.ready) name = query.current.name
+	})
+</script>
+
+<input bind:value={name} />
+```
+
+**RIGHT — Gate child component behind `.ready`:**
+
+```svelte
+<!-- Parent.svelte -->
+<script>
+	let query = $derived(get_item({ id }))
+</script>
+
+{#if !query.ready}
+	<Skeleton />
+{:else}
+	<EditForm item={query.current} />
+{/if}
+```
+
+```svelte
+<!-- EditForm.svelte -->
+<script>
+	let { item } = $props()
+	// svelte-ignore state_referenced_locally
+	let form = $state({ name: item.name }) // init from prop at mount
+</script>
+
+<input bind:value={form.name} />
+```
+
+**Why:** The child component initializes `$state` from props once at
+mount time. No `$effect` needed, no `state_unsafe_mutation` warning.
+This is the standard pattern for editable forms backed by async data.
+
+---
+
 ### 2. Reassigning $derived Values ⚠️
 
 **Note:** As of Svelte 5.25+, `$derived` CAN be reassigned, but will

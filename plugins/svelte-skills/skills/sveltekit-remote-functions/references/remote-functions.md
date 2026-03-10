@@ -84,7 +84,7 @@ export const get_weather = query.batch(v.string(), async (cities) => {
   `;
 
   // Return a resolver function
-  const lookup = new Map(weather.map(w => [w.city, w]));
+  const lookup = new Map(weather.map((w) => [w.city, w]));
   return (city) => lookup.get(city);
 });
 ```
@@ -99,6 +99,7 @@ export const get_weather = query.batch(v.string(), async (cities) => {
 ```
 
 **How it works:**
+
 1. Multiple calls in same macrotask are collected
 2. Server receives array of all inputs
 3. Your handler returns a resolver function
@@ -163,7 +164,8 @@ No `experimental.async` needed — works with any Svelte 5 version:
 
 ### Pattern 3: Reactive Query with Navigation
 
-For queries that depend on route params:
+For queries that depend on route params, `$derived()` returns a **Query
+object** (not a plain promise). Use `.ready`/`.current` properties:
 
 ```svelte
 <script lang="ts">
@@ -173,18 +175,37 @@ For queries that depend on route params:
 	// Extract reactive value first
 	let slug = $derived(page.params.slug)
 
-	// Query re-runs when slug changes
-	let data = $derived(get_post({ slug }))
+	// Returns a reactive Query object — use .ready/.current
+	let post_query = $derived(get_post({ slug }))
 </script>
 
-{#await data}
+{#if !post_query.ready}
 	<p>Loading...</p>
-{:then post}
-	<h1>{post.title}</h1>
-	<div>{@html post.content}</div>
-{:catch error}
-	<p>Error: {error.message}</p>
-{/await}
+{:else}
+	<h1>{post_query.current.title}</h1>
+	<div>{@html post_query.current.content}</div>
+{/if}
+```
+
+**Query object properties:**
+
+- `.ready` — `true` after first successful load
+- `.current` — resolved data (`undefined` until ready)
+- `.loading` — active loading/reloading state
+- `.error` — rejection error
+- `.refresh()` — re-fetch from server
+- `.set(value)` — manually update cached value
+- `.withOverride(fn)` — optimistic updates
+
+**Experimental async alternative** (requires `experimental.async` in svelte.config.js):
+
+```svelte
+<script lang="ts">
+	let slug = $derived(page.params.slug)
+	let post = $derived(await get_post({ slug }))
+</script>
+
+<h1>{post.title}</h1>
 ```
 
 ### Polling with Refresh
@@ -218,6 +239,61 @@ For queries that depend on route params:
 - Queries are cached while on the page (`get_posts() === get_posts()`)
 - Call `.refresh()` on the query to refetch from server
 - Use imperative `query.current` for flicker-free refresh updates
+
+### Error Handling and Polling
+
+#### .refresh() returns a rejectable Promise
+
+`query().refresh()` returns a Promise. On server error (e.g., 500), the
+promise **rejects** with `HttpError`. If uncaught, this is a silent
+unhandled promise rejection.
+
+#### Cache eviction on error
+
+Failed queries are evicted from the internal cache (`query_map`). The
+next call to the same remote function creates a **new** Query object,
+not the cached one. Prefer refreshing an existing reference over
+re-calling the function.
+
+#### Safe polling pattern
+
+```svelte
+<script lang="ts">
+	import { get_active_visitors } from '$lib/analytics.remote'
+
+	const data = get_active_visitors({ limit: 10 })
+
+	$effect(() => {
+		const interval = setInterval(() => {
+			// MUST .catch() — one 500 kills the loop via uncaught rejection
+			data.refresh().catch(() => {})
+		}, 5000)
+		return () => clearInterval(interval)
+	})
+</script>
+
+{#if data.error}
+	<p>Error: {data.error.message}</p>
+{:else if !data.ready}
+	<p>Loading...</p>
+{:else}
+	<p>{data.current.total} active visitors</p>
+{/if}
+```
+
+#### State after failed .refresh()
+
+- `.ready` stays `true` (doesn't reset)
+- `.error` gets set with the rejection error
+- `.current` retains the last successful value
+- The Promise rejects (must be caught)
+
+#### Best practices
+
+- **Always `.catch()`** refresh calls in `setInterval` loops
+- **Prefer refreshing an existing reference** over re-calling the remote function
+- **Check `.error`** in your template for graceful degradation
+- **Don't rely on cache** after errors — the query is evicted
 
 ### Common Mistakes
 
@@ -275,7 +351,7 @@ export const create_post = form(
   }),
   async ({ title, content }) => {
     await db.posts.create({ title, content });
-  }
+  },
 );
 ```
 
@@ -300,6 +376,7 @@ Use `.fields` with `.as()` to get typed input attributes:
 ```
 
 **What `.as()` provides:**
+
 - Correct `type` attribute
 - `name` for form data construction
 - `value` populated on validation error (user doesn't re-enter)
@@ -584,9 +661,7 @@ Show instant UI feedback while mutation is in flight:
 
 ```typescript
 // Optimistic increment - shows immediately, auto-rollback on error
-await addLike(item.id).updates(
-  getLikes(item.id).withOverride((n) => n + 1)
-);
+await addLike(item.id).updates(getLikes(item.id).withOverride((n) => n + 1));
 ```
 
 **Form example:**
@@ -600,6 +675,7 @@ await addLike(item.id).updates(
 ```
 
 **How it works:**
+
 1. Override applied immediately (instant UI)
 2. Server mutation runs
 3. On success: real data replaces override
@@ -676,3 +752,99 @@ Choose remote functions when you need:
 - Simple CRUD operations
 - Client-driven interactions
 - No public API exposure needed
+
+## Testing Remote Functions
+
+Remote functions depend on `$app/server` runtime and can't be tested
+directly. Extract business logic into **helper files** and test those.
+
+### Helper Files Paradigm
+
+```
+src/lib/
+  agents.remote.ts       → thin wrapper (command/query + auth guard)
+  agents.helpers.ts      → pure business logic (DB queries, transforms)
+  agents.helpers.test.ts → unit tests for the helpers
+```
+
+### Example
+
+**Remote file (thin wrapper):**
+
+```typescript
+// agents.remote.ts
+import { command } from "$app/server";
+import * as v from "valibot";
+import { create_agent, delete_agent } from "./agents.helpers";
+
+export const create = command(
+  v.object({ name: v.string(), model: v.string() }),
+  async (input) => {
+    const event = getRequestEvent();
+    const user = await getUserFromEvent(event);
+    return create_agent(user.id, input);
+  },
+);
+
+export const remove = command(v.object({ id: v.string() }), async ({ id }) => {
+  const event = getRequestEvent();
+  const user = await getUserFromEvent(event);
+  return delete_agent(user.id, id);
+});
+```
+
+**Helper file (testable logic):**
+
+```typescript
+// agents.helpers.ts
+export async function create_agent(
+  user_id: string,
+  input: { name: string; model: string },
+) {
+  const agent = await db.agents.create({ ...input, owner_id: user_id });
+  return { id: agent.id, name: agent.name };
+}
+
+export async function delete_agent(user_id: string, agent_id: string) {
+  const agent = await db.agents.findById(agent_id);
+  if (agent?.owner_id !== user_id) throw new Error("Unauthorized");
+  await db.agents.delete(agent_id);
+  return { success: true };
+}
+```
+
+**Test file:**
+
+```typescript
+// agents.helpers.test.ts
+import { describe, it, expect, vi } from "vitest";
+import { create_agent, delete_agent } from "./agents.helpers";
+
+describe("create_agent", () => {
+  it("creates agent with owner", async () => {
+    const result = await create_agent("user-1", {
+      name: "Bot",
+      model: "gpt-4",
+    });
+    expect(result).toHaveProperty("id");
+    expect(result.name).toBe("Bot");
+  });
+});
+
+describe("delete_agent", () => {
+  it("throws if not owner", async () => {
+    await expect(delete_agent("wrong-user", "agent-1")).rejects.toThrow(
+      "Unauthorized",
+    );
+  });
+});
+```
+
+### What stays in remote vs helpers
+
+| Remote file (`.remote.ts`)      | Helper file (`.helpers.ts`) |
+| ------------------------------- | --------------------------- |
+| `command()`/`query()`/`form()`  | Business logic              |
+| Schema validation               | DB queries and transforms   |
+| Auth guards (`getRequestEvent`) | Data validation rules       |
+| Input/output shaping            | Error conditions            |
