@@ -21,10 +21,15 @@ Svelte 5 and SvelteKit skills marketplace for Claude Code.
 - **svelte-components** - Component patterns (Bits UI, Ark UI, Melt UI)
 - **svelte-deployment** - Adapters, Vite config, pnpm, PWA
 - **svelte-runes** - $state, $derived, $effect, migration
+- **svelte-styling** - CSS patterns, style: directive, :global, custom properties
 - **svelte-template-directives** - {@attach}, {@html}, {@render}, {@const}
 - **sveltekit-data-flow** - Load functions, form actions
 - **sveltekit-remote-functions** - command(), query(), form() patterns
 - **sveltekit-structure** - Routing, layouts, error handling, SSR
+
+## Official Svelte Best Practices
+
+These skills are aligned with the [official Svelte best practices](https://svelte.dev/docs/svelte/best-practices). The Svelte team also publishes their own `svelte-core-bestpractices` skill — this marketplace complements it with deeper coverage of SvelteKit patterns, component libraries, deployment, and real-world examples.
 
 ## Skills Ecosystem
 
