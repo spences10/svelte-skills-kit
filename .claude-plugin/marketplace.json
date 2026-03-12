@@ -1,24 +1,27 @@
 {
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "svelte-skills-kit",
+  "description": "Svelte 5 and SvelteKit skills, commands, and hooks",
   "owner": {
     "name": "Scott Spence"
   },
   "metadata": {
     "description": "Svelte 5 and SvelteKit skills, commands, and hooks",
-    "version": "1.2.2",
-    "homepage": "https://github.com/spences10/svelte-skills-kit"
+    "version": "1.2.3"
   },
   "plugins": [
     {
       "name": "svelte-skills",
       "source": "./plugins/svelte-skills",
       "description": "Svelte 5 runes, SvelteKit data flow, routing, and structure patterns",
-      "version": "1.2.2",
+      "version": "1.2.3",
       "author": {
         "name": "Scott Spence"
       },
       "category": "framework",
-      "keywords": ["svelte", "sveltekit", "runes", "routing", "ssr"]
+      "keywords": ["svelte", "sveltekit", "runes", "routing", "ssr"],
+      "repository": "https://github.com/spences10/svelte-skills-kit",
+      "license": "MIT"
     }
   ]
 }
