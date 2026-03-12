@@ -394,32 +394,9 @@ the prop value.
 
 ## Prop Drilling vs Context
 
-For deeply nested components, consider Context API instead of prop
-drilling:
-
-```svelte
-<!-- App.svelte -->
-<script>
-  import { setContext } from 'svelte';
-  let theme = $state('dark');
-
-  setContext('theme', {
-    get current() { return theme; },
-    set current(value) { theme = value; }
-  });
-</script>
-
-<!-- DeepChild.svelte -->
-<script>
-  import { getContext } from 'svelte';
-  const theme = getContext('theme');
-</script>
-
-<p>Current theme: {theme.current}</p>
-<button onclick={() => theme.current = 'light'}>
-  Switch to light
-</button>
-```
+For deeply nested components, use `createContext` instead of prop
+drilling. See [createContext](#createcontext---type-safe-context) below
+for the recommended pattern.
 
 ## Performance: Props Are Reactive
 
@@ -445,3 +422,68 @@ Props are automatically reactive - no need for extra $derived:
 - Value is used multiple times
 - Computation is expensive
 - You need to derive from multiple props
+
+## createContext - Type-Safe Context
+
+Per official Svelte best practices: use `createContext` rather than
+`setContext` and `getContext`, as it provides type safety.
+
+### Basic Usage
+
+```ts
+// context.ts
+import { createContext } from 'svelte';
+
+const [get_theme, set_theme] = createContext<{ current: string }>('theme');
+
+export { get_theme, set_theme };
+```
+
+```svelte
+<!-- Provider.svelte -->
+<script>
+	import { set_theme } from './context';
+
+	let theme = $state('dark');
+	set_theme({
+		get current() { return theme; },
+		set current(value) { theme = value; }
+	});
+</script>
+
+{@render children()}
+```
+
+```svelte
+<!-- Consumer.svelte -->
+<script>
+	import { get_theme } from './context';
+
+	const theme = get_theme();
+</script>
+
+<p>Theme: {theme.current}</p>
+<button onclick={() => theme.current = 'light'}>Light mode</button>
+```
+
+### Why createContext over set/getContext
+
+| Feature | `setContext`/`getContext` | `createContext` |
+|---------|------------------------|-----------------|
+| Type safety | Manual casting | **Automatic** |
+| Key management | String keys (typo-prone) | **Module-scoped** |
+| Default values | Manual check | **Built-in support** |
+
+### Context vs Shared Module State
+
+Per best practices: use context instead of declaring state in a shared
+module. Context scopes state to the component tree, preventing leaks
+between users during SSR.
+
+```ts
+// BAD - shared module state leaks between SSR requests
+export let theme = $state('dark');
+
+// GOOD - context is scoped per component tree
+const [get_theme, set_theme] = createContext<string>('theme');
+```

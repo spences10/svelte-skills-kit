@@ -795,3 +795,34 @@ proxies.
 9. ✅ Use `{@render children()}` not `{children}`
 10. ✅ Use `onclick` not `on:click`
 11. ✅ Remember: `$effect` doesn't run during SSR
+
+## Debugging: $inspect.trace
+
+`$inspect.trace` is a debugging tool for reactivity. Add it as the first
+line of an `$effect` or `$derived.by` to trace dependencies and discover
+which one triggered an update.
+
+```svelte
+<script>
+	let count = $state(0);
+	let name = $state('world');
+
+	$effect(() => {
+		$inspect.trace('greeting effect');
+		console.log(`Hello ${name}, count is ${count}`);
+	});
+
+	const message = $derived.by(() => {
+		$inspect.trace('message derived');
+		return `${name}: ${count}`;
+	});
+</script>
+```
+
+**When to use:**
+- Something is not updating when it should
+- An effect or derived is running more often than expected
+- You need to identify which dependency triggered a re-run
+
+**Note:** Remove `$inspect.trace` before production — it's for debugging
+only, like `{@debug}`.

@@ -53,7 +53,9 @@ Objects/arrays are deeply reactive by default.
 
 - Use `onclick` not `on:click`, `{@render children()}` in layouts
 - `$derived` can be reassigned (5.25+) - use `const` for read-only
-- **Last verified:** 2025-01-11
+- Use `createContext` over `setContext`/`getContext` for type safety
+- Use `$inspect.trace` to debug reactivity issues
+- **Last verified:** 2026-03-12
 
 <!--
 PROGRESSIVE DISCLOSURE GUIDELINES:

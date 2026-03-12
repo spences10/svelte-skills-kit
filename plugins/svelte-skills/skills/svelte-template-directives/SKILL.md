@@ -31,13 +31,15 @@ change, passes through components via spread, supports cleanup functions.
 
 ## Quick Reference
 
-| Directive   | Purpose                        | Reactive? |
-| ----------- | ------------------------------ | --------- |
-| `{@attach}` | DOM manipulation, 3rd-party    | Yes       |
-| `{@html}`   | Render raw HTML strings        | Yes       |
-| `{@render}` | Render snippets                | Yes       |
-| `{@const}`  | Local constants in blocks      | N/A       |
-| `{@debug}`  | Pause debugger on value change | N/A       |
+| Directive        | Purpose                        | Reactive? |
+| ---------------- | ------------------------------ | --------- |
+| `{@attach}`      | DOM manipulation, 3rd-party    | Yes       |
+| `{@html}`        | Render raw HTML strings        | Yes       |
+| `{@render}`      | Render snippets                | Yes       |
+| `{@const}`       | Local constants in blocks      | N/A       |
+| `{@debug}`       | Pause debugger on value change | N/A       |
+| `{#each (key)}`  | Keyed iteration (always key!)  | Yes       |
+| `<svelte:window>` | Window event listeners        | N/A       |
 
 ## @attach vs use: Actions
 
@@ -60,7 +62,9 @@ change, passes through components via spread, supports cleanup functions.
 - `@attach` requires Svelte 5.29+
 - Use `fromAction` from `svelte/attachments` to convert legacy actions
 - Attachments pass through wrapper components when you spread props
-- **Last verified:** 2025-01-13
+- Always use keyed each blocks — never use index as key
+- Use `<svelte:window>`/`<svelte:document>` for global events, not `$effect`
+- **Last verified:** 2026-03-12
 
 <!--
 PROGRESSIVE DISCLOSURE GUIDELINES:

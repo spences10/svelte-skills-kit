@@ -132,3 +132,103 @@ Pauses execution and opens devtools when specified values change.
 ```
 
 Pauses on every update (rarely useful, but available).
+
+## Keyed Each Blocks
+
+Per official Svelte best practices: always use keyed each blocks for
+better performance.
+
+### Basic Keyed Each
+
+```svelte
+{#each items as item (item.id)}
+	<div>{item.name}</div>
+{/each}
+```
+
+**Key must uniquely identify the object.** Do NOT use the index:
+
+```svelte
+<!-- WRONG - index as key -->
+{#each items as item, i (i)}
+	<div>{item.name}</div>
+{/each}
+
+<!-- RIGHT - unique identifier -->
+{#each items as item (item.id)}
+	<div>{item.name}</div>
+{/each}
+```
+
+### Why Keys Matter
+
+Without keys, Svelte updates existing DOM nodes in place when the array
+changes. With keys, Svelte can surgically insert, remove, or reorder
+items instead.
+
+**Without key:** Removing item 2 from [A, B, C] updates node 2 to show
+C's data and removes the last node.
+
+**With key:** Removing item B actually removes B's DOM node, leaving A
+and C untouched.
+
+### Avoid Destructuring with bind
+
+Per best practices: avoid destructuring if you need to mutate the item.
+
+```svelte
+<!-- WRONG - destructured value is disconnected from original -->
+{#each items as { count } (item.id)}
+	<input bind:value={count} /> <!-- Won't update the original item -->
+{/each}
+
+<!-- RIGHT - reference the item directly -->
+{#each items as item (item.id)}
+	<input bind:value={item.count} /> <!-- Updates the original -->
+{/each}
+```
+
+## Window and Document Events
+
+Per official best practices: use `<svelte:window>` and
+`<svelte:document>` for window/document event listeners. Avoid
+`onMount` or `$effect` for this.
+
+```svelte
+<svelte:window onkeydown={handleKeydown} onscroll={handleScroll} />
+<svelte:document onvisibilitychange={handleVisibility} />
+```
+
+### Common Events
+
+```svelte
+<!-- Keyboard shortcuts -->
+<svelte:window onkeydown={(e) => {
+	if (e.key === 'Escape') closeModal();
+	if (e.ctrlKey && e.key === 's') { e.preventDefault(); save(); }
+}} />
+
+<!-- Online/offline detection -->
+<svelte:window ononline={() => status = 'online'} onoffline={() => status = 'offline'} />
+
+<!-- Responsive design -->
+<svelte:window
+	bind:innerWidth={width}
+	bind:innerHeight={height}
+/>
+```
+
+### Bindable Window Properties
+
+```svelte
+<svelte:window
+	bind:innerWidth
+	bind:innerHeight
+	bind:scrollX
+	bind:scrollY
+	bind:online
+/>
+```
+
+**Why not $effect:** `<svelte:window>` automatically cleans up listeners
+when the component is destroyed. No manual cleanup needed.

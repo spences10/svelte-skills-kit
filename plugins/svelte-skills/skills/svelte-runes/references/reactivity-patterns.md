@@ -303,3 +303,37 @@ Extract plain JavaScript values from proxies:
 	}
 </script>
 ```
+
+## createSubscriber - External Observables
+
+Use `createSubscriber` from `svelte/reactivity` to observe external state
+without `$effect`. Per official best practices: use this instead of
+`$effect` when you need to observe something external to Svelte.
+
+```ts
+import { createSubscriber } from 'svelte/reactivity';
+
+function createLocationStore() {
+	let location = window.location.href;
+
+	const subscribe = createSubscriber((update) => {
+		const handler = () => {
+			location = window.location.href;
+			update();
+		};
+		window.addEventListener('popstate', handler);
+		return () => window.removeEventListener('popstate', handler);
+	});
+
+	return {
+		get href() {
+			subscribe();
+			return location;
+		}
+	};
+}
+```
+
+**When to use:** Wrapping browser APIs, third-party event emitters, or
+any external source that doesn't integrate with Svelte's reactivity
+natively.
