@@ -40,14 +40,19 @@ export const delete_user = command(
 ## Notes
 
 - Remote functions execute on server when called from browser
-- Args/returns must be JSON-serializable
+- Args/returns must be JSON-serializable (RegExp is **forbidden** — throws)
 - Schema validation via StandardSchemaV1 (Valibot/Zod)
 - `getRequestEvent()` available for cookies/headers access
 - **In components:** No-param `query()` works with `{#await}`. Parameterized queries with `$derived` return Query objects — use `.ready`/`.current` or `$derived(await ...)` with experimental async
+- **Reactive context required:** `.current`/`.error`/`.loading`/`.ready` only work in reactive contexts (component top-level, `$derived`, `$effect`). Outside (event handlers, universal `load`), use `.run()` instead
+- **Hydration:** Queries rendered during hydration must also render on server. Use `onMount` for client-only queries, not `browser` guards
 - **Warning:** `<svelte:boundary>` + `{@const await}` causes infinite navigation loops with shared queries ([sveltejs/svelte#17717](https://github.com/sveltejs/svelte/issues/17717))
-- **Refresh queries:** Call `query().refresh()` - updates without flicker
+- **Single-flight mutations:** `.updates()` accepts query functions (`getPosts`) or instances. Server must opt-in via `requested()` from `$app/server`
+- **Refresh queries:** Call `query().refresh()` - updates without flicker. No-op if no cached instance
 - **Polling safety:** Always `.catch()` on `query().refresh()` in intervals — errors reject the Promise and evict the query from cache
-- **Last verified:** 2026-02-21
+- **Server handlers:** Use `void` (not `await`) for `.refresh()` inside command/form handlers
+- **Cache keys:** Object property order doesn't matter for queries — keys are sorted alphabetically
+- **Last verified:** 2026-04-06
 
 <!--
 PROGRESSIVE DISCLOSURE GUIDELINES:

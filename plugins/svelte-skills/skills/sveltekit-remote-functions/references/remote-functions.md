@@ -193,9 +193,21 @@ object** (not a plain promise). Use `.ready`/`.current` properties:
 - `.current` — resolved data (`undefined` until ready)
 - `.loading` — active loading/reloading state
 - `.error` — rejection error
-- `.refresh()` — re-fetch from server
+- `.refresh()` — re-fetch from server (no-op if no cached instance exists)
 - `.set(value)` — manually update cached value
-- `.withOverride(fn)` — optimistic updates
+- `.withOverride(fn)` — optimistic updates (returns `() => void` release function)
+- `.run()` — returns `Promise<T>`, for use **outside** reactive contexts only
+
+> **⚠️ Reactive context requirement:** `.current`, `.error`, `.loading`,
+> and `.ready` can only be accessed in **reactive contexts** (component
+> script top-level, `$derived`, `$effect`). Accessing them from event
+> handlers, `load` functions, or module scope throws:
+> `"This query was not created in a reactive context and is limited to calling .run, .refresh, and .set."`
+
+> **⚠️ Hydration requirement:** Queries rendered during hydration **must**
+> also render on the server. Browser-conditional queries
+> (`browser ? get_count() : null`) throw during hydration. Use `onMount`
+> for client-only queries instead.
 
 **Experimental async alternative** (requires `experimental.async` in svelte.config.js):
 
@@ -207,6 +219,32 @@ object** (not a plain promise). Use `.ready`/`.current` properties:
 
 <h1>{post.title}</h1>
 ```
+
+### Pattern 4: .run() for Non-Reactive Contexts
+
+Use `.run()` to get query data in event handlers, `load` functions, or
+anywhere outside a reactive tracking context:
+
+```svelte
+<script lang="ts">
+	import { get_items } from '$lib/items.remote'
+
+	// In an event handler — can't use .current here
+	async function handleExport() {
+		const data = await get_items().run()
+		downloadCSV(data)
+	}
+</script>
+
+<button onclick={handleExport}>Export</button>
+```
+
+**Rules:**
+
+- `.run()` **cannot** be called inside `$effect` or during render (throws)
+- `.run()` **can** be called in event handlers and universal `load` functions
+- On the server, `.run()` is **only** valid inside universal `load` — elsewhere just `await` the query directly
+- For reactive contexts, continue using `.current`/`.ready` or `{#await}`
 
 ### Polling with Refresh
 
@@ -296,6 +334,49 @@ re-calling the function.
 - **Don't rely on cache** after errors — the query is evicted
 
 ### Common Mistakes
+
+❌ **Wrong: Browser-conditional query (breaks hydration)**
+
+```svelte
+<script>
+	import { browser } from '$app/environment'
+	// THROWS during hydration — hydratable can't find cached data
+	const count = browser ? get_count() : null
+</script>
+```
+
+✅ **Right: Use onMount for client-only queries**
+
+```svelte
+<script>
+	import { onMount } from 'svelte'
+	let count
+	onMount(() => {
+		count = get_count()
+	})
+</script>
+```
+
+❌ **Wrong: Using .run() inside $effect**
+
+```svelte
+<script>
+	// THROWS — .run() cannot be called inside effects or during render
+	$effect(() => {
+		const data = await get_items().run()
+	})
+</script>
+```
+
+✅ **Right: Use .run() in event handlers only**
+
+```svelte
+<script>
+	async function handleClick() {
+		const data = await get_items().run()
+	}
+</script>
+```
 
 ❌ **Wrong: svelte:boundary + {@const await} — navigation loop bug**
 
@@ -479,7 +560,6 @@ export const flexible_action = command.unchecked(async (input) => {
 - Plain objects and arrays
 - Date objects
 - Maps and Sets
-- RegExp
 - TypedArrays
 
 **Cannot serialize:**
@@ -488,6 +568,14 @@ export const flexible_action = command.unchecked(async (input) => {
 - Class instances (unless they have toJSON)
 - Symbols
 - Circular references
+- **RegExp** — throws `"Regular expressions are not valid remote function arguments"`
+
+**Cache key behavior (queries only):**
+
+- Object keys are **deep-sorted alphabetically** before cache key generation
+- `getPost({ limit: 10, offset: 20 })` and `getPost({ offset: 20, limit: 10 })` hit the **same** cache entry
+- Map and Set entries are also sorted for stable keys
+- Command arguments are **not sorted** (no caching concern)
 
 **Example:**
 
@@ -636,24 +724,67 @@ export const admin_action = command(schema, async (data) => {
 
 ### Single-Flight Mutations with .updates()
 
-By default, all queries refresh after form submission. Use `.updates()`
-for efficient client-driven single-flight mutations:
+Use `.updates()` for efficient client-driven single-flight mutations.
+The **server must explicitly opt-in** to client-requested refreshes
+using `requested()` from `$app/server`.
+
+#### Client side — .updates()
+
+`.updates()` accepts **query functions**, **query instances**, and
+**overrides**:
+
+```typescript
+// Refresh ALL active instances of getPosts
+await createPost(data).updates(getPosts);
+
+// Refresh a specific instance
+await addLike(item.id).updates(getLikes(item.id));
+
+// Combine: refresh all + optimistic override on one
+await createPost(data).updates(
+  getPosts,
+  getLikes(item.id).withOverride((n) => n + 1),
+);
+```
 
 **In enhance callback (forms):**
 
 ```svelte
 <form {...createPost.enhance(async ({ submit }) => {
-  // Only refresh getPosts, not all queries
-  await submit().updates(getPosts());
+  await submit().updates(getPosts);
 })}>
 ```
 
-**With commands:**
+#### Server side — requested()
+
+The server **must** use `requested()` to accept client-requested
+refreshes. Without this, `.updates()` calls have no effect:
 
 ```typescript
-// Refresh specific query after command
-await addLike(item.id).updates(getLikes(item.id));
+import { command, query, requested } from "$app/server";
+
+export const getPosts = query(schema, async (filter) => {
+  return await db.posts.find(filter);
+});
+
+export const createPost = command(schema, async (data) => {
+  await db.posts.create(data);
+
+  // Accept and refresh client-requested queries (limit: 5)
+  for (const arg of requested(getPosts, 5)) {
+    void getPosts(arg).refresh();
+  }
+  // OR shorthand:
+  // await requested(getPosts, 5).refreshAll();
+});
 ```
+
+**Key points:**
+
+- `requested(queryFn, limit)` — iterates args the client requested, with a cap
+- Use `void` (not `await`) for `.refresh()` inside handlers — the framework awaits it
+- Refresh failures are **isolated per-query** — they don't crash the command
+- Failed refreshes send an error back to the client for that specific query only
 
 ### Optimistic Updates with .withOverride()
 
@@ -681,6 +812,15 @@ await addLike(item.id).updates(getLikes(item.id).withOverride((n) => n + 1));
 3. On success: real data replaces override
 4. On error: override released, original data restored
 
+**Release function:** `.withOverride()` returns `() => void`. Call it to
+manually release the override:
+
+```typescript
+const release = getLikes(item.id).withOverride((n) => n + 1);
+// later...
+release(); // manually release the override
+```
+
 ### Server-Side Query Updates
 
 Inside command/form handlers, use `.refresh()` or `.set()`:
@@ -689,11 +829,11 @@ Inside command/form handlers, use `.refresh()` or `.set()`:
 export const updatePost = form(schema, async (data) => {
   const result = await externalApi.update(post);
 
-  // Option 1: Refetch from DB
-  await getPost(post.id).refresh();
+  // Option 1: Refetch from DB (use void, not await)
+  void getPost(post.id).refresh();
 
   // Option 2: Set directly (if you have the data)
-  await getPost(post.id).set(result);
+  void getPost(post.id).set(result);
 });
 ```
 
