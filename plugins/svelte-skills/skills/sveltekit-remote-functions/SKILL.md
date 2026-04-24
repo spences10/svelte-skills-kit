@@ -2,57 +2,87 @@
 name: sveltekit-remote-functions
 # IMPORTANT: Keep description on ONE line for agent compatibility
 # prettier-ignore
-description: "SvelteKit remote functions guidance. Use for command(), query(), form() patterns in .remote.ts files."
+description: "SvelteKit remote functions guidance. Use for query(), form(), command(), and prerender() patterns in .remote.ts files."
 ---
 
 # SvelteKit Remote Functions
 
+## Current Status
+
+Remote functions are **experimental** in SvelteKit 2.58. Enable them in
+`svelte.config.js`:
+
+```js
+export default {
+	kit: { experimental: { remoteFunctions: true } },
+	compilerOptions: { experimental: { async: true } } // only for await in components
+};
+```
+
 ## Quick Start
 
-**File naming:** `*.remote.ts` for remote function files
+**File naming:** export remote functions from `*.remote.ts` or `*.remote.js`.
+Remote files can live anywhere under `src` except `src/lib/server`.
 
-**Which function?** One-time action → `command()` | Repeated reads →
-`query()` | Forms → `form()`
+**Which function?**
+
+- Dynamic reads → `query()`
+- Progressive forms → `form()`
+- Event-handler mutations → `command()`
+- Build-time/static reads → `prerender()`
 
 ## Example
 
-```typescript
-// actions.remote.ts
-import { command } from "$app/server";
-import * as v from "valibot";
+```ts
+// posts.remote.ts
+import { command, query, requested } from '$app/server';
+import * as v from 'valibot';
 
-export const delete_user = command(
-  v.object({ id: v.string() }),
-  async ({ id }) => {
-    await db.users.delete(id);
-    return { success: true };
-  },
-);
+export const getPosts = query(v.object({ tag: v.optional(v.string()) }), async (filter) => {
+	return db.posts.find(filter);
+});
 
-// Call from client: await delete_user({ id: '123' });
+export const createPost = command(v.object({ title: v.string() }), async (data) => {
+	await db.posts.create(data);
+
+	for (const { query } of requested(getPosts, 5)) {
+		void query.refresh();
+	}
+});
 ```
+
+Client:
+
+```svelte
+<script lang="ts">
+	import { createPost, getPosts } from './posts.remote';
+
+	const posts = $derived(await getPosts({ tag: 'svelte' }));
+</script>
+
+<button onclick={() => createPost({ title: 'New' }).updates(getPosts)}>
+	Create
+</button>
+```
+
+## Current Rules
+
+- Remote functions always run on the server, even when called from the browser.
+- Args/returns use `devalue`; avoid functions, class instances, symbols, circular refs, and `RegExp`.
+- Validate exposed inputs with Standard Schema (`valibot`, `zod`, `arktype`, etc.) or use `.unchecked`/`'unchecked'` deliberately.
+- `query.batch()` batches calls from the same macrotask to solve n+1 reads.
+- `form().enhance()` `submit()` returns `true` when submission is valid/successful and `false` for validation failures.
+- `.updates()` is client-requested; server handlers must opt in with `requested(queryFn, limit)`.
+- `requested()` now yields `{ arg, query }`; call `query.refresh()`/`query.set(...)` on the bound instance.
+- `limit` is required for `requested()` to cap client-controlled refresh requests.
+- Inside command/form handlers, use `void query.refresh()`/`void query.set(value)`; SvelteKit awaits and serializes the updates.
+- Prefer `form()` over `command()` where progressive enhancement matters.
+- Use `prerender()` for data that changes at most once per deployment.
+- **Last verified:** SvelteKit 2.58.0, 2026-04-24
 
 ## Reference Files
 
-- [references/remote-functions.md](references/remote-functions.md) -
-  Complete guide with all patterns
-
-## Notes
-
-- Remote functions execute on server when called from browser
-- Args/returns must be JSON-serializable (RegExp is **forbidden** — throws)
-- Schema validation via StandardSchemaV1 (Valibot/Zod)
-- `getRequestEvent()` available for cookies/headers access
-- **In components:** No-param `query()` works with `{#await}`. Parameterized queries with `$derived` return Query objects — use `.ready`/`.current` or `$derived(await ...)` with experimental async
-- **Reactive context required:** `.current`/`.error`/`.loading`/`.ready` only work in reactive contexts (component top-level, `$derived`, `$effect`). Outside (event handlers, universal `load`), use `.run()` instead
-- **Hydration:** Queries rendered during hydration must also render on server. Use `onMount` for client-only queries, not `browser` guards
-- **Warning:** `<svelte:boundary>` + `{@const await}` causes infinite navigation loops with shared queries ([sveltejs/svelte#17717](https://github.com/sveltejs/svelte/issues/17717))
-- **Single-flight mutations:** `.updates()` accepts query functions (`getPosts`) or instances. Server must opt-in via `requested()` from `$app/server`
-- **Refresh queries:** Call `query().refresh()` - updates without flicker. No-op if no cached instance
-- **Polling safety:** Always `.catch()` on `query().refresh()` in intervals — errors reject the Promise and evict the query from cache
-- **Server handlers:** Use `void` (not `await`) for `.refresh()` inside command/form handlers
-- **Cache keys:** Object property order doesn't matter for queries — keys are sorted alphabetically
-- **Last verified:** 2026-04-06
+- [references/remote-functions.md](references/remote-functions.md) - Current patterns, examples, and gotchas
 
 <!--
 PROGRESSIVE DISCLOSURE GUIDELINES:

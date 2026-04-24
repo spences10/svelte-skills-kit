@@ -1,14 +1,12 @@
-# Sveltekit Remote Functions
+# SvelteKit Remote Functions
 
-SvelteKit remote functions guidance. Use for command(), query(),
-form() patterns in .remote.ts files.
+SvelteKit remote functions guidance for `query()`, `form()`, `command()`, and
+`prerender()` in `.remote.ts` / `.remote.js` files.
 
 ## Structure
 
 - `SKILL.md` - Main skill instructions
-- `references/` - Detailed documentation loaded as needed
-- `scripts/` - Executable code for deterministic operations
-- `assets/` - Templates, images, or other resources
+- `references/remote-functions.md` - Current patterns, examples, and gotchas
 
 ## Usage
 
