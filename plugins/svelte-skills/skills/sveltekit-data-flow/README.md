@@ -13,5 +13,5 @@ serialization, fail(), redirect(), error().
 
 ## Usage
 
-This skill is automatically discovered by Claude when relevant to the
+This skill is automatically discovered by compatible agents when relevant to the
 task.

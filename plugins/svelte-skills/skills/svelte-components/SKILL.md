@@ -1,6 +1,6 @@
 ---
 name: svelte-components
-# IMPORTANT: Keep description on ONE line for Claude Code compatibility
+# IMPORTANT: Keep description on ONE line for agent compatibility
 # prettier-ignore
 description: "Svelte component patterns. Use for web components, component libraries (Bits UI, Ark UI, Melt UI), form patterns, or third-party integration."
 ---

@@ -1,6 +1,6 @@
 ---
 name: svelte-deployment
-# IMPORTANT: Keep description on ONE line for Claude Code compatibility
+# IMPORTANT: Keep description on ONE line for agent compatibility
 # prettier-ignore
 description: "Svelte deployment guidance. Use for adapters, Vite config, pnpm setup, library authoring, PWA, or production builds."
 ---
