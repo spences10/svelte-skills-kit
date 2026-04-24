@@ -1,20 +1,18 @@
 ---
-name: layerchart-svelte5
+name: svelte-layerchart
 # prettier-ignore
-description: LayerChart Svelte 5 patterns. Use for chart components with tooltip snippets, Chart context access, and all Svelte 5 snippet patterns for tooltips, gradients, highlights, and axes.
+description: "Svelte LayerChart patterns. Use for chart components with tooltip snippets, Chart context access, and all Svelte 5 snippet patterns for tooltips, gradients, highlights, and axes."
 ---
 
-# LayerChart Svelte 5
+# Svelte LayerChart
 
-Docs: **next.layerchart.com** (NOT layerchart.com - that's Svelte 4)
+Docs: **layerchart.com**
 
 ## Install
 
 ```bash
-npm i layerchart@next d3-scale
+npm i layerchart d3-scale
 ```
-
-**CRITICAL**: Use `@next` tag. Stable (1.x) is Svelte 4 only.
 
 ## Quick Start
 

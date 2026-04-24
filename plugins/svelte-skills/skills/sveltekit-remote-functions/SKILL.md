@@ -2,7 +2,7 @@
 name: sveltekit-remote-functions
 # IMPORTANT: Keep description on ONE line for Claude Code compatibility
 # prettier-ignore
-description: SvelteKit remote functions guidance. Use for command(), query(), form() patterns in .remote.ts files.
+description: "SvelteKit remote functions guidance. Use for command(), query(), form() patterns in .remote.ts files."
 ---
 
 # SvelteKit Remote Functions

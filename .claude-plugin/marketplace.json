@@ -1,12 +1,10 @@
 {
-  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "svelte-skills-kit",
-  "description": "Svelte 5 and SvelteKit skills, commands, and hooks",
   "owner": {
     "name": "Scott Spence"
   },
   "metadata": {
-    "description": "Svelte 5 and SvelteKit skills, commands, and hooks",
+    "description": "Svelte 5 and SvelteKit skills",
     "version": "1.3.0"
   },
   "plugins": [

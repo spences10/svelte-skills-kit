@@ -2,7 +2,7 @@
 name: svelte-styling
 # IMPORTANT: Keep description on ONE line for Claude Code compatibility
 # prettier-ignore
-description: Svelte CSS styling patterns. Use for scoped styles, CSS custom properties, style: directive, :global, or styling child components.
+description: "Svelte CSS styling patterns. Use for scoped styles, CSS custom properties, style: directive, :global, or styling child components."
 ---
 
 # Svelte Styling

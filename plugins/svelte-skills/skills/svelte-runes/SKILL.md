@@ -2,7 +2,7 @@
 name: svelte-runes
 # IMPORTANT: Keep description on ONE line for Claude Code compatibility
 # prettier-ignore
-description: Svelte runes guidance. Use for reactive state, props, effects, or migration. Covers $state, $derived, $effect, $props, $bindable. Prevents reactivity mistakes.
+description: "Svelte runes guidance. Use for reactive state, props, effects, or migration. Covers $state, $derived, $effect, $props, $bindable. Prevents reactivity mistakes."
 ---
 
 # Svelte Runes
