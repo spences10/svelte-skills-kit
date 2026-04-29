@@ -1,8 +1,8 @@
 # svelte-skills-kit
 
-Claude Code plugin marketplace wrapper for the Svelte skills in `spences10/skills`.
+Claude Code plugin marketplace wrapper for the Svelte skills from [spences10/skills](https://github.com/spences10/skills).
 
-The canonical skill source is `/home/scott/repos/skills/skills/*`. This repo distributes the Svelte subset for Claude Code users.
+This repo distributes the Svelte subset for Claude Code users. For vendor-agnostic installs across compatible agents, use the canonical [spences10/skills](https://github.com/spences10/skills) repo.
 
 ## Quick Start
 
@@ -16,7 +16,7 @@ The canonical skill source is `/home/scott/repos/skills/skills/*`. This repo dis
 
 ## Universal Install Alternative
 
-If you are not using Claude Code plugins, install directly from the canonical skills repo:
+If you are not using Claude Code plugins, install directly from the vendor-agnostic canonical skills repo:
 
 ```bash
 npx skills add spences10/skills --agent claude-code --skill svelte-runes
