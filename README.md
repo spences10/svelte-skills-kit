@@ -14,6 +14,26 @@ This repo distributes the Svelte subset for Claude Code users. For vendor-agnost
 /plugin install svelte-skills
 ```
 
+## Svelte Language Server
+
+The `svelte-lsp` plugin connects Claude Code to the Svelte language server, so Claude gets type errors after editing `.svelte` files and can look up definitions, references and types in them. Claude Code has no official code intelligence plugin for Svelte.
+
+The plugin is configuration only. Install the language server first and check it is on your `PATH`:
+
+```bash
+npm i -g svelte-language-server
+which svelteserver
+```
+
+Then install the plugin and restart Claude Code:
+
+```bash
+/plugin marketplace add spences10/svelte-skills-kit
+/plugin install svelte-lsp@svelte-skills-kit
+```
+
+It handles `.svelte` files only. For `.ts` and `.js` files, also install the official `typescript-lsp` plugin.
+
 ## Universal Install Alternative
 
 If you are not using Claude Code plugins, install directly from the vendor-agnostic canonical skills repo:

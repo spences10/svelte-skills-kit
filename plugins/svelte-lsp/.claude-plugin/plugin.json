@@ -1,0 +1,4 @@
+{
+  "name": "svelte-lsp",
+  "description": "Svelte language server for Claude Code: diagnostics after edits and code navigation in .svelte files"
+}

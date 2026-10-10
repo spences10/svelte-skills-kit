@@ -4,8 +4,8 @@
     "name": "Scott Spence"
   },
   "metadata": {
-    "description": "Svelte 5 and SvelteKit skills",
-    "version": "1.3.0"
+    "description": "Svelte 5 and SvelteKit skills and language server",
+    "version": "1.4.0"
   },
   "plugins": [
     {
@@ -18,6 +18,19 @@
       },
       "category": "framework",
       "keywords": ["svelte", "sveltekit", "runes", "routing", "ssr"],
+      "repository": "https://github.com/spences10/svelte-skills-kit",
+      "license": "MIT"
+    },
+    {
+      "name": "svelte-lsp",
+      "source": "./plugins/svelte-lsp",
+      "description": "Svelte language server for diagnostics after edits and code navigation in .svelte files",
+      "version": "1.0.0",
+      "author": {
+        "name": "Scott Spence"
+      },
+      "category": "development",
+      "keywords": ["svelte", "sveltekit", "lsp", "language-server", "diagnostics"],
       "repository": "https://github.com/spences10/svelte-skills-kit",
       "license": "MIT"
     }
