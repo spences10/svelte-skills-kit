@@ -1,0 +1,4 @@
+{
+  "name": "typescript-lsp",
+  "description": "TypeScript language server for Claude Code with the syntax server turned off, so the first LSP call of a session waits for the project to load"
+}

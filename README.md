@@ -32,7 +32,37 @@ Then install the plugin and restart Claude Code:
 /plugin install svelte-lsp@svelte-skills-kit
 ```
 
-It handles `.svelte` files only. For `.ts` and `.js` files, also install the official `typescript-lsp` plugin.
+It handles `.svelte` files only. For `.ts` and `.js` files, also install a TypeScript plugin: the official `typescript-lsp`, or the one below.
+
+## TypeScript Language Server
+
+The `typescript-lsp` plugin is the official `typescript-lsp` configuration with one option added:
+
+```json
+"initializationOptions": {
+  "tsserver": { "useSyntaxServer": "never" }
+}
+```
+
+With the official plugin, the first `findReferences` or `goToDefinition` call of a session can come back incomplete, with nothing to say so. `typescript-language-server` answers from a lightweight syntax server while the project is still loading, and that server only knows about the file it was asked about. Turning it off makes the first call wait for the project and return the full result. It is a workaround suggested by the [language server's maintainer](https://github.com/typescript-language-server/typescript-language-server/discussions/1067) for the Claude Code bug tracked in [anthropics/claude-code#76870](https://github.com/anthropics/claude-code/issues/76870).
+
+The trade-off is that the first call is slower, because it waits for the project to load.
+
+Install the language server first:
+
+```bash
+npm i -g typescript-language-server typescript
+which typescript-language-server
+```
+
+Then install the plugin, disable the official one so two servers do not both handle `.ts` files, and restart Claude Code:
+
+```bash
+/plugin install typescript-lsp@svelte-skills-kit
+/plugin disable typescript-lsp@claude-plugins-official
+```
+
+It works in any TypeScript or JavaScript project, not only Svelte ones.
 
 ## Universal Install Alternative
 

@@ -5,7 +5,7 @@
   },
   "metadata": {
     "description": "Svelte 5 and SvelteKit skills and language server",
-    "version": "1.4.0"
+    "version": "1.5.0"
   },
   "plugins": [
     {
@@ -31,6 +31,19 @@
       },
       "category": "development",
       "keywords": ["svelte", "sveltekit", "lsp", "language-server", "diagnostics"],
+      "repository": "https://github.com/spences10/svelte-skills-kit",
+      "license": "MIT"
+    },
+    {
+      "name": "typescript-lsp",
+      "source": "./plugins/typescript-lsp",
+      "description": "TypeScript language server with the syntax server turned off, so the first LSP call of a session returns complete results",
+      "version": "1.0.0",
+      "author": {
+        "name": "Scott Spence"
+      },
+      "category": "development",
+      "keywords": ["typescript", "javascript", "lsp", "language-server", "diagnostics"],
       "repository": "https://github.com/spences10/svelte-skills-kit",
       "license": "MIT"
     }
